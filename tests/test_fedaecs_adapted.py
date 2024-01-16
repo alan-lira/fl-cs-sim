@@ -122,7 +122,7 @@ class TestFedAECSAdapted(TestCase):
         num_tasks = 6
         # Task assignment capacities per resource.
         assignment_capacities = array([[[1, 2, 3, 4, 5, 6], [1, 2], [1, 2, 3, 4, 5, 6]]], dtype=object)
-        # The cost arrays doesn't contain the costs of scheduling 0 tasks.
+        # The cost arrays doesn't contain the costs of scheduling 0 tasks (FedAECS algorithm can't handle that).
         # Monotonically increasing time costs.
         time_costs = array([[[2, 4, 7, 9, 11, 14], [1, 3, 5, 7, 9, 11], [6, 10, 15, 22, 23, 27]]],
                            dtype=object)
@@ -188,13 +188,13 @@ class TestFedAECSAdapted(TestCase):
         num_tasks = 5
         # Task assignment capacities per resource.
         assignment_capacities = array([[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]], dtype=object)
-        # The cost arrays doesn't contain the costs of scheduling 0 tasks.
+        # The cost arrays doesn't contain the costs of scheduling 0 tasks (FedAECS algorithm can't handle that).
         # Time costs set to zero (MC^2MKP paper's example doesn't consider them).
         time_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]],
                            dtype=object)
         # Monotonically increasing energy costs.
         energy_costs = array([[[2, 3.5, 5.5, 8, 10, 12], [1.5, 2.5, 4, 7, 9, 11], [3, 4, 5, 6, 7, 99]]], dtype=object)
-        # Training accuracies randomly set (OLAR paper's example doesn't consider them).
+        # Training accuracies randomly set (MC^2MKP paper's example doesn't consider them).
         training_accuracies = array([[[0.1, 0.15, 0.18, 0.22, 0.24, 0.25],
                                      [0.11, 0.16, 0.19, 0.21, 0.22, 0.27],
                                      [0.09, 0.14, 0.17, 0.22, 0.29, 0.35]]], dtype=object)
@@ -254,13 +254,13 @@ class TestFedAECSAdapted(TestCase):
         num_tasks = 8
         # Task assignment capacities per resource.
         assignment_capacities = array([[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]], dtype=object)
-        # The cost arrays doesn't contain the costs of scheduling 0 tasks.
+        # The cost arrays doesn't contain the costs of scheduling 0 tasks (FedAECS algorithm can't handle that).
         # Time costs set to zero (MC^2MKP paper's example doesn't consider them).
         time_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]],
                            dtype=object)
         # Monotonically increasing energy costs.
         energy_costs = array([[[2, 3.5, 5.5, 8, 10, 12], [1.5, 2.5, 4, 7, 9, 11], [3, 4, 5, 6, 7, 99]]], dtype=object)
-        # Training accuracies randomly set (OLAR paper's example doesn't consider them).
+        # Training accuracies randomly set (MC^2MKP paper's example doesn't consider them).
         training_accuracies = array([[[0.1, 0.15, 0.18, 0.22, 0.24, 0.25],
                                      [0.11, 0.16, 0.19, 0.21, 0.22, 0.27],
                                      [0.09, 0.14, 0.17, 0.22, 0.29, 0.35]]], dtype=object)
