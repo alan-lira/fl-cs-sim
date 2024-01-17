@@ -1,6 +1,6 @@
 from itertools import combinations
 from math import inf, log
-from numpy import any, argmin, array, zeros
+from numpy import any, argmin, array, ndarray, zeros
 
 
 def calculate_Γ(sum_εi: float) -> float:
@@ -10,11 +10,11 @@ def calculate_Γ(sum_εi: float) -> float:
 def fedaecs_adapted(I: int,
                     K: int,
                     num_tasks: int,
-                    A: array,
-                    T: array,
-                    E: array,
-                    ε: array,
-                    b: array,
+                    A: ndarray,
+                    T: ndarray,
+                    E: ndarray,
+                    ε: ndarray,
+                    b: ndarray,
                     ε0: float,
                     T_max: float,
                     B: float) -> tuple:

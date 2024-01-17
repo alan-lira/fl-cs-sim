@@ -1,6 +1,6 @@
 from itertools import combinations
 from math import inf, log, log2, pow
-from numpy import any, argmin, array, zeros
+from numpy import any, argmin, array, ndarray, zeros
 
 
 def calculate_E_comp(Uik: float,
@@ -70,12 +70,12 @@ def fedaecs(I: int,
             N0: float,
             γk: float,
             μ: float,
-            D: array,
-            b: array,
-            f: array,
-            P: array,
-            c: array,
-            G: array) -> tuple:
+            D: ndarray,
+            b: ndarray,
+            f: ndarray,
+            P: ndarray,
+            c: ndarray,
+            G: ndarray) -> tuple:
     beta_star = []
     f_obj_beta_star = []
     selected_clients = []

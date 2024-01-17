@@ -1,5 +1,5 @@
 from math import log2, pow
-from numpy import array, ones
+from numpy import array, ndarray, ones
 
 
 def calculate_t_comp(θ: float,
@@ -17,9 +17,9 @@ def calculate_t_wait(t_comp_j: float,
     return max(0.0, t_comp_j + t_wait_j + t_up_j - t_comp_j_plus_one)
 
 
-def generate_t_wait_array(J: array,
-                          t_comp: array,
-                          t_up: array) -> array:
+def generate_t_wait_array(J: ndarray,
+                          t_comp: ndarray,
+                          t_up: ndarray) -> ndarray:
     t_wait = []
     for index, _ in enumerate(J):
         if index == 0:
@@ -32,7 +32,7 @@ def generate_t_wait_array(J: array,
             t_comp_j_plus_one = t_comp[index]
             t_wait_j_plus_one = calculate_t_wait(t_comp_j, t_wait_j, t_up_j, t_comp_j_plus_one)
             t_wait.append((J[index], t_wait_j_plus_one))
-    return t_wait
+    return array(t_wait)
 
 
 def calculate_ri(B: float,
@@ -65,10 +65,10 @@ def calculate_ni(α: float,
 
 
 def elastic_client_selection_algorithm(I: int,
-                                       g: array,
-                                       D: array,
-                                       C: array,
-                                       f_max: array,
+                                       g: ndarray,
+                                       D: ndarray,
+                                       C: ndarray,
+                                       f_max: ndarray,
                                        p_max: float,
                                        N0: float,
                                        B: float,

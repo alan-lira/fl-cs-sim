@@ -1,4 +1,4 @@
-from numpy import array, ones
+from numpy import ndarray, ones
 
 
 def calculate_ni_adapted(α: float,
@@ -7,9 +7,9 @@ def calculate_ni_adapted(α: float,
 
 
 def elastic_adapted_client_selection_algorithm(I: int,
-                                               A: array,
-                                               t: array,
-                                               E: array,
+                                               A: ndarray,
+                                               t: ndarray,
+                                               E: ndarray,
                                                τ: float,
                                                α: float) -> tuple:
     # Some remarks about this adapted version of ELASTIC algorithm:
