@@ -74,7 +74,10 @@ def fedaecs_adapted(I: int,
             init_qualified_client_max_capacity.append(Ak_max)
             for a in Ak:
                 if Ti[k][a-1] <= T_max and b[i][k][a-1] <= B:
-                    n.append(Ei[k][a-1] / εi[k][a-1])
+                    if εi[k][a-1] > 0:
+                        n.append(Ei[k][a-1] / εi[k][a-1])
+                    else:
+                        n.append(inf)
                     init_qualified_client_capacity.append(a)
                     init_qualified_client_energy.append(Ei[k][a-1])
                     init_qualified_client_accuracy.append(εi[k][a-1])
@@ -175,8 +178,11 @@ def fedaecs_adapted(I: int,
                                     for client_idx in selection_possibilities[u]:
                                         total_energy_qualified_select_idx += sorted_client_energy[client_idx]
                                     # Calculate the objective function.
-                                    f_obj = (total_energy_qualified_select_idx /
-                                             selection_possibilities_model_accuracies[u])
+                                    if selection_possibilities_model_accuracies[u] > 0:
+                                        f_obj = (total_energy_qualified_select_idx /
+                                                 selection_possibilities_model_accuracies[u])
+                                    else:
+                                        f_obj = inf
                                     obj = list(obj)
                                     # Store the objective function value.
                                     obj.append(f_obj)

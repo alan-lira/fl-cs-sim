@@ -65,7 +65,7 @@ class TestFedAECS(TestCase):
 
         T_max = 1  # Deadline of a global iteration (T_max = 1 seconds).
 
-        # FedAECS Algorithm.
+        # Solution to FedAECS Algorithm.
         beta_star, f_obj_beta_star, selected_clients, makespan, energy_consumption, training_accuracy \
             = fedaecs(I, K, Uik, Vik, ε0, T_max, B, S, N0, γk, μ, D, b, f, P, c, G)
         # for i in range(I):
@@ -84,6 +84,8 @@ class TestFedAECS(TestCase):
         self.assertEqual(expected_f_obj_beta_star_0, f_obj_beta_star[0])
         expected_selected_clients_0 = [0, 1, 4]
         self.assertSequenceEqual(expected_selected_clients_0, selected_clients[0])
+        expect_number_selected_clients = 3
+        self.assertEqual(expect_number_selected_clients, len(selected_clients[0]))
         expected_makespan_0 = 0.5332146038795531
         self.assertEqual(expected_makespan_0, makespan[0])
         expected_energy_consumption_0 = 6.548116211244814

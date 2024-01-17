@@ -85,7 +85,7 @@ class TestFedAECSAdapted(TestCase):
 
         B = inf  # Total bandwidth (B = ∞ Hz).
 
-        # FedAECS Adapted Algorithm.
+        # Solution to FedAECS Adapted Algorithm.
         beta_star, beta_star_tasks, f_obj_beta_star, selected_clients, makespan, energy_consumption, training_accuracy \
             = fedaecs_adapted(I, K, num_tasks, assignment_capacities, time_costs, energy_costs, training_accuracies,
                               b, ε0, T_max, B)
@@ -108,6 +108,8 @@ class TestFedAECSAdapted(TestCase):
         self.assertEqual(expected_f_obj_beta_star_0, f_obj_beta_star[0])
         expected_selected_clients_0 = [1, 2, 4]
         self.assertSequenceEqual(expected_selected_clients_0, selected_clients[0])
+        expect_number_selected_clients = 3
+        self.assertEqual(expect_number_selected_clients, len(selected_clients[0]))
         expected_makespan_0 = 0.9788022515907917
         self.assertEqual(expected_makespan_0, makespan[0])
         expected_energy_consumption_0 = 0.07694049275709776
@@ -128,10 +130,8 @@ class TestFedAECSAdapted(TestCase):
                            dtype=object)
         # Energy costs set to zero (OLAR paper's example doesn't consider them).
         energy_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]], dtype=object)
-        # Training accuracies randomly set (OLAR paper's example doesn't consider them).
-        training_accuracies = array([[[0.1, 0.15, 0.18, 0.22, 0.24, 0.25],
-                                     [0.11, 0.16, 0.19, 0.21, 0.22, 0.27],
-                                     [0.09, 0.14, 0.17, 0.22, 0.29, 0.35]]], dtype=object)
+        # Training accuracies set to zero (OLAR paper's example doesn't consider them).
+        training_accuracies = array([[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]], dtype=object)
 
         # Bandwidth information per resource per round.
         b = []
@@ -145,13 +145,13 @@ class TestFedAECSAdapted(TestCase):
                 b_i.append(b_ik)
             b.append(b_i)
 
-        ε0 = 0.22  # The lower bound of accuracy (0.22).
+        ε0 = 0.0  # The lower bound of accuracy (0.0).
 
         T_max = 50  # Deadline of a global iteration (T_max = 50 seconds).
 
         B = inf  # Total bandwidth (B = ∞ Hz).
 
-        # FedAECS Adapted Algorithm.
+        # Solution to FedAECS Adapted Algorithm.
         beta_star, beta_star_tasks, f_obj_beta_star, selected_clients, makespan, energy_consumption, training_accuracy \
             = fedaecs_adapted(num_rounds, num_resources, num_tasks, assignment_capacities, time_costs, energy_costs,
                               training_accuracies, b, ε0, T_max, B)
@@ -170,15 +170,17 @@ class TestFedAECSAdapted(TestCase):
         self.assertSequenceEqual(expected_beta_star_0, list(beta_star[0]))
         expected_beta_star_tasks_0 = [4, 1, 1]
         self.assertSequenceEqual(expected_beta_star_tasks_0, list(beta_star_tasks[0]))
-        expected_f_obj_beta_star_0 = 0.0
+        expected_f_obj_beta_star_0 = inf
         self.assertEqual(expected_f_obj_beta_star_0, f_obj_beta_star[0])
         expected_selected_clients_0 = [0, 1, 2]
         self.assertSequenceEqual(expected_selected_clients_0, selected_clients[0])
-        expected_makespan_0 = 9
+        expect_number_selected_clients = 3
+        self.assertEqual(expect_number_selected_clients, len(selected_clients[0]))
+        expected_makespan_0 = 9.0
         self.assertEqual(expected_makespan_0, makespan[0])
-        expected_energy_consumption_0 = 0
+        expected_energy_consumption_0 = 0.0
         self.assertEqual(expected_energy_consumption_0, energy_consumption[0])
-        expected_training_accuracy_0 = 0.35065687161316933
+        expected_training_accuracy_0 = 0.0
         self.assertEqual(expected_training_accuracy_0, training_accuracy[0])
 
     def test_fedaecs_adapted_on_mc2mkp_paper_example_1(self) -> None:
@@ -189,15 +191,13 @@ class TestFedAECSAdapted(TestCase):
         # Task assignment capacities per resource.
         assignment_capacities = array([[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]], dtype=object)
         # The cost arrays doesn't contain the costs of scheduling 0 tasks (FedAECS algorithm can't handle that).
-        # Time costs set to zero (MC^2MKP paper's example doesn't consider them).
+        # Time costs set to zero (MC²MKP paper's example doesn't consider them).
         time_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]],
                            dtype=object)
         # Monotonically increasing energy costs.
         energy_costs = array([[[2, 3.5, 5.5, 8, 10, 12], [1.5, 2.5, 4, 7, 9, 11], [3, 4, 5, 6, 7, 99]]], dtype=object)
-        # Training accuracies randomly set (MC^2MKP paper's example doesn't consider them).
-        training_accuracies = array([[[0.1, 0.15, 0.18, 0.22, 0.24, 0.25],
-                                     [0.11, 0.16, 0.19, 0.21, 0.22, 0.27],
-                                     [0.09, 0.14, 0.17, 0.22, 0.29, 0.35]]], dtype=object)
+        # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
+        training_accuracies = array([[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]], dtype=object)
 
         # Bandwidth information per resource per round.
         b = []
@@ -211,13 +211,13 @@ class TestFedAECSAdapted(TestCase):
                 b_i.append(b_ik)
             b.append(b_i)
 
-        ε0 = 0.22  # The lower bound of accuracy (0.22).
+        ε0 = 0.0  # The lower bound of accuracy (0.0).
 
         T_max = 50  # Deadline of a global iteration (T_max = 50 seconds).
 
         B = inf  # Total bandwidth (B = ∞ Hz).
 
-        # FedAECS Adapted Algorithm.
+        # Solution to FedAECS Adapted Algorithm.
         beta_star, beta_star_tasks, f_obj_beta_star, selected_clients, makespan, energy_consumption, training_accuracy \
             = fedaecs_adapted(num_rounds, num_resources, num_tasks, assignment_capacities, time_costs, energy_costs,
                               training_accuracies, b, ε0, T_max, B)
@@ -232,19 +232,21 @@ class TestFedAECSAdapted(TestCase):
         #     print("Training accuracy: {0}".format(training_accuracy[i]))
 
         # Asserts for the FedAECS algorithm results.
-        expected_beta_star_0 = [0, 0, 1]
+        expected_beta_star_0 = [1, 1, 1]
         self.assertSequenceEqual(expected_beta_star_0, list(beta_star[0]))
-        expected_beta_star_tasks_0 = [0, 0, 5]
+        expected_beta_star_tasks_0 = [1, 2, 2]
         self.assertSequenceEqual(expected_beta_star_tasks_0, list(beta_star_tasks[0]))
-        expected_f_obj_beta_star_0 = 24.13793103448276
+        expected_f_obj_beta_star_0 = inf
         self.assertEqual(expected_f_obj_beta_star_0, f_obj_beta_star[0])
-        expected_selected_clients_0 = [2]
+        expected_selected_clients_0 = [0, 1, 2]
         self.assertSequenceEqual(expected_selected_clients_0, selected_clients[0])
-        expected_makespan_0 = 0
+        expect_number_selected_clients = 3
+        self.assertEqual(expect_number_selected_clients, len(selected_clients[0]))
+        expected_makespan_0 = 0.0
         self.assertEqual(expected_makespan_0, makespan[0])
-        expected_energy_consumption_0 = 7
+        expected_energy_consumption_0 = 8.5
         self.assertEqual(expected_energy_consumption_0, energy_consumption[0])
-        expected_training_accuracy_0 = 0.25464221837358075
+        expected_training_accuracy_0 = 0.0
         self.assertEqual(expected_training_accuracy_0, training_accuracy[0])
 
     def test_fedaecs_adapted_on_mc2mkp_paper_example_2(self) -> None:
@@ -255,15 +257,13 @@ class TestFedAECSAdapted(TestCase):
         # Task assignment capacities per resource.
         assignment_capacities = array([[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]], dtype=object)
         # The cost arrays doesn't contain the costs of scheduling 0 tasks (FedAECS algorithm can't handle that).
-        # Time costs set to zero (MC^2MKP paper's example doesn't consider them).
+        # Time costs set to zero (MC²MKP paper's example doesn't consider them).
         time_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]],
                            dtype=object)
         # Monotonically increasing energy costs.
         energy_costs = array([[[2, 3.5, 5.5, 8, 10, 12], [1.5, 2.5, 4, 7, 9, 11], [3, 4, 5, 6, 7, 99]]], dtype=object)
-        # Training accuracies randomly set (MC^2MKP paper's example doesn't consider them).
-        training_accuracies = array([[[0.1, 0.15, 0.18, 0.22, 0.24, 0.25],
-                                     [0.11, 0.16, 0.19, 0.21, 0.22, 0.27],
-                                     [0.09, 0.14, 0.17, 0.22, 0.29, 0.35]]], dtype=object)
+        # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
+        training_accuracies = array([[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]], dtype=object)
 
         # Bandwidth information per resource per round.
         b = []
@@ -277,13 +277,13 @@ class TestFedAECSAdapted(TestCase):
                 b_i.append(b_ik)
             b.append(b_i)
 
-        ε0 = 0.22  # The lower bound of accuracy (0.22).
+        ε0 = 0.0  # The lower bound of accuracy (0.0).
 
         T_max = 50  # Deadline of a global iteration (T_max = 50 seconds).
 
         B = inf  # Total bandwidth (B = ∞ Hz).
 
-        # FedAECS Adapted Algorithm.
+        # Solution to FedAECS Adapted Algorithm.
         beta_star, beta_star_tasks, f_obj_beta_star, selected_clients, makespan, energy_consumption, training_accuracy \
             = fedaecs_adapted(num_rounds, num_resources, num_tasks, assignment_capacities, time_costs, energy_costs,
                               training_accuracies, b, ε0, T_max, B)
@@ -298,17 +298,19 @@ class TestFedAECSAdapted(TestCase):
         #     print("Training accuracy: {0}".format(training_accuracy[i]))
 
         # Asserts for the FedAECS algorithm results.
-        expected_beta_star_0 = [0, 1, 1]
+        expected_beta_star_0 = [1, 1, 1]
         self.assertSequenceEqual(expected_beta_star_0, list(beta_star[0]))
-        expected_beta_star_tasks_0 = [0, 3, 5]
+        expected_beta_star_tasks_0 = [1, 6, 1]
         self.assertSequenceEqual(expected_beta_star_tasks_0, list(beta_star_tasks[0]))
-        expected_f_obj_beta_star_0 = 24.13793103448276
+        expected_f_obj_beta_star_0 = inf
         self.assertEqual(expected_f_obj_beta_star_0, f_obj_beta_star[0])
-        expected_selected_clients_0 = [1, 2]
+        expected_selected_clients_0 = [0, 1, 2]
         self.assertSequenceEqual(expected_selected_clients_0, selected_clients[0])
-        expected_makespan_0 = 0
+        expect_number_selected_clients = 3
+        self.assertEqual(expect_number_selected_clients, len(selected_clients[0]))
+        expected_makespan_0 = 0.0
         self.assertEqual(expected_makespan_0, makespan[0])
-        expected_energy_consumption_0 = 11
+        expected_energy_consumption_0 = 16.0
         self.assertEqual(expected_energy_consumption_0, energy_consumption[0])
-        expected_training_accuracy_0 = 0.3920420877760237
+        expected_training_accuracy_0 = 0.0
         self.assertEqual(expected_training_accuracy_0, training_accuracy[0])

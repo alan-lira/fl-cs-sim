@@ -16,10 +16,8 @@ class TestMECWithAccuracy(TestCase):
                            dtype=object)
         # Energy costs set to zero (OLAR paper's example doesn't consider them).
         energy_costs = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
-        # Training accuracies randomly set (OLAR paper's example doesn't consider them).
-        training_accuracies = array([[0.1, 0.15, 0.18, 0.22, 0.24, 0.25],
-                                     [0.11, 0.16, 0.19, 0.21, 0.22, 0.27],
-                                     [0.09, 0.14, 0.17, 0.22, 0.29, 0.35]], dtype=object)
+        # Training accuracies set to zero (OLAR paper's example doesn't consider them).
+        training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to MEC With Accuracy algorithm.
         optimal_schedule, minimal_makespan, minimal_energy_consumption, maximal_training_accuracy \
             = mec_with_accuracy(num_resources,
@@ -28,20 +26,22 @@ class TestMECWithAccuracy(TestCase):
                                 time_costs,
                                 energy_costs,
                                 training_accuracies)
-        # selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
+        selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
         # print("X*: {0}".format(optimal_schedule))
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), num_resources, selected_clients))
-        # print("Minimal Makespan (Cₘₐₓ): {0}".format(minimal_makespan))
-        # print("Minimal Energy consumption (ΣE): {0}".format(minimal_energy_consumption))
+        # print("Minimal makespan (Cₘₐₓ): {0}".format(minimal_makespan))
+        # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
         # print("Maximal Training accuracy (ΣW): {0}".format(maximal_training_accuracy))
         # Asserts for the MEC With Accuracy algorithm results.
+        expected_number_selected_clients = 3
+        self.assertEqual(expected_number_selected_clients, len(selected_clients))
         expected_optimal_schedule = [3, 2, 1]
         self.assertSequenceEqual(expected_optimal_schedule, list(optimal_schedule))
         expected_minimal_makespan = 7.0
         self.assertEqual(expected_minimal_makespan, minimal_makespan)
         expected_minimal_energy_consumption = 0.0
         self.assertEqual(expected_minimal_energy_consumption, minimal_energy_consumption)
-        expected_maximal_training_accuracy = 0.55
+        expected_maximal_training_accuracy = 0.0
         self.assertEqual(expected_maximal_training_accuracy, maximal_training_accuracy)
 
     def test_mec_with_accuracy_on_mc2mkp_paper_example_1(self) -> None:
@@ -50,15 +50,13 @@ class TestMECWithAccuracy(TestCase):
         num_tasks = 5
         # Task assignment capacities per resource.
         assignment_capacities = array([[1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]], dtype=object)
-        # Time costs set to zero (MC^2MKP paper's example doesn't consider them).
+        # Time costs set to zero (MC²MKP paper's example doesn't consider them).
         time_costs = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Monotonically increasing energy costs.
         energy_costs = array([[0, 2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7, 99]],
                              dtype=object)
-        # Training accuracies randomly set (MC^2MKP paper's example doesn't consider them).
-        training_accuracies = array([[0.1, 0.15, 0.18, 0.22, 0.24, 0.25],
-                                     [0.11, 0.16, 0.19, 0.21, 0.22, 0.27],
-                                     [0.09, 0.14, 0.17, 0.22, 0.29, 0.35]], dtype=object)
+        # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
+        training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to MEC With Accuracy algorithm.
         optimal_schedule, minimal_makespan, minimal_energy_consumption, maximal_training_accuracy \
             = mec_with_accuracy(num_resources,
@@ -67,20 +65,22 @@ class TestMECWithAccuracy(TestCase):
                                 time_costs,
                                 energy_costs,
                                 training_accuracies)
-        # selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
+        selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
         # print("X*: {0}".format(optimal_schedule))
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), num_resources, selected_clients))
-        # print("Minimal Makespan (Cₘₐₓ): {0}".format(minimal_makespan))
-        # print("Minimal Energy consumption (ΣE): {0}".format(minimal_energy_consumption))
+        # print("Minimal makespan (Cₘₐₓ): {0}".format(minimal_makespan))
+        # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
         # print("Maximal Training accuracy (ΣW): {0}".format(maximal_training_accuracy))
         # Asserts for the MEC With Accuracy algorithm results.
+        expected_number_selected_clients = 2
+        self.assertEqual(expected_number_selected_clients, len(selected_clients))
         expected_optimal_schedule = [2, 3, 0]
         self.assertSequenceEqual(expected_optimal_schedule, list(optimal_schedule))
         expected_minimal_makespan = 0.0
         self.assertEqual(expected_minimal_makespan, minimal_makespan)
         expected_minimal_energy_consumption = 7.5
         self.assertEqual(expected_minimal_energy_consumption, minimal_energy_consumption)
-        expected_maximal_training_accuracy = 0.48
+        expected_maximal_training_accuracy = 0.0
         self.assertEqual(expected_maximal_training_accuracy, maximal_training_accuracy)
 
     def test_mec_with_accuracy_on_mc2mkp_paper_example_2(self) -> None:
@@ -89,15 +89,13 @@ class TestMECWithAccuracy(TestCase):
         num_tasks = 8
         # Task assignment capacities per resource.
         assignment_capacities = array([[1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]], dtype=object)
-        # Time costs set to zero (MC^2MKP paper's example doesn't consider them).
+        # Time costs set to zero (MC²MKP paper's example doesn't consider them).
         time_costs = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Monotonically increasing energy costs.
         energy_costs = array([[0, 2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7, 99]],
                              dtype=object)
-        # Training accuracies randomly set (MC^2MKP paper's example doesn't consider them).
-        training_accuracies = array([[0.1, 0.15, 0.18, 0.22, 0.24, 0.25],
-                                     [0.11, 0.16, 0.19, 0.21, 0.22, 0.27],
-                                     [0.09, 0.14, 0.17, 0.22, 0.29, 0.35]], dtype=object)
+        # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
+        training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to MEC With Accuracy algorithm.
         optimal_schedule, minimal_makespan, minimal_energy_consumption, maximal_training_accuracy \
             = mec_with_accuracy(num_resources,
@@ -106,18 +104,20 @@ class TestMECWithAccuracy(TestCase):
                                 time_costs,
                                 energy_costs,
                                 training_accuracies)
-        # selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
+        selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
         # print("X*: {0}".format(optimal_schedule))
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), num_resources, selected_clients))
-        # print("Minimal Makespan (Cₘₐₓ): {0}".format(minimal_makespan))
-        # print("Minimal Energy consumption (ΣE): {0}".format(minimal_energy_consumption))
+        # print("Minimal makespan (Cₘₐₓ): {0}".format(minimal_makespan))
+        # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
         # print("Maximal Training accuracy (ΣW): {0}".format(maximal_training_accuracy))
         # Asserts for the MEC With Accuracy algorithm results.
+        expected_number_selected_clients = 3
+        self.assertEqual(expected_number_selected_clients, len(selected_clients))
         expected_optimal_schedule = [1, 2, 5]
         self.assertSequenceEqual(expected_optimal_schedule, list(optimal_schedule))
         expected_minimal_makespan = 0.0
         self.assertEqual(expected_minimal_makespan, minimal_makespan)
         expected_minimal_energy_consumption = 11.5
         self.assertEqual(expected_minimal_energy_consumption, minimal_energy_consumption)
-        expected_maximal_training_accuracy = 0.69
+        expected_maximal_training_accuracy = 0.0
         self.assertEqual(expected_maximal_training_accuracy, maximal_training_accuracy)
