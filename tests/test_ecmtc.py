@@ -20,7 +20,7 @@ class TestECMTC(TestCase):
         training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to ECMTC algorithm.
         max_makespan = inf
-        optimal_schedule, minimal_makespan, minimal_energy_consumption = ecmtc(num_resources,
+        optimal_schedule, minimal_energy_consumption, minimal_makespan = ecmtc(num_resources,
                                                                                num_tasks,
                                                                                assignment_capacities,
                                                                                time_costs,
@@ -64,7 +64,7 @@ class TestECMTC(TestCase):
         training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to ECMTC algorithm.
         max_makespan = inf
-        optimal_schedule, minimal_makespan, minimal_energy_consumption = ecmtc(num_resources,
+        optimal_schedule, minimal_energy_consumption, minimal_makespan = ecmtc(num_resources,
                                                                                num_tasks,
                                                                                assignment_capacities,
                                                                                time_costs,
@@ -108,7 +108,7 @@ class TestECMTC(TestCase):
         training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to ECMTC algorithm.
         max_makespan = inf
-        optimal_schedule, minimal_makespan, minimal_energy_consumption = ecmtc(num_resources,
+        optimal_schedule, minimal_energy_consumption, minimal_makespan = ecmtc(num_resources,
                                                                                num_tasks,
                                                                                assignment_capacities,
                                                                                time_costs,

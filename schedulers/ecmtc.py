@@ -6,10 +6,10 @@ def ecmtc(num_resources: int,
           assignment_capacities: ndarray,
           time_costs: ndarray,
           energy_costs: ndarray,
-          max_makespan: float) -> tuple:
+          time_limit: float) -> tuple:
     """
     Minimal Energy Consumption and Makespan FL Schedule under Time Constraint problem (ECMTC): finds an optimal schedule
-    (X*) that minimizes the total energy consumption (ΣE) and the makespan (Cₘₐₓ) in order, while respecting the time
+    (X*) that minimizes the total energy consumption (ΣE) and the makespan (Cₘₐₓ), in order, while respecting the time
     limit (C).
     Parameters
     ----------
@@ -23,18 +23,18 @@ def ecmtc(num_resources: int,
         Time costs to process tasks per resource (Ρ)
     energy_costs : ndarray(shape=(num_resources, num_tasks+1), object)
         Energy costs to process tasks per resource (ε)
-    max_makespan : float
+    time_limit : float
         Time limit (C)
     Returns
     -------
-    optimal_schedule : ndarray(shape=(num_resources), int), minimal_makespan : float, minimal_energy_consumption : float
-        Optimal schedule (X*), minimal makespan (Cₘₐₓ), and minimal energy consumption (ΣE)
+    optimal_schedule : ndarray(shape=(num_resources), int), minimal_energy_consumption : float, minimal_makespan : float
+        Optimal schedule (X*), minimal energy consumption (ΣE), and minimal makespan (Cₘₐₓ)
     """
-    # (I) Filtering: only assignments that respect the maximum makespan.
+    # (I) Filtering: only assignments that respect the time limit (C).
     for i in range(0, num_resources):
         assignment_capacities_i = []
         for j in assignment_capacities[i]:
-            if time_costs[i][j] <= max_makespan:
+            if time_costs[i][j] <= time_limit:
                 assignment_capacities_i.append(j)
         assignment_capacities[i] = array(assignment_capacities_i)
     # (II) Initialization: minimal costs and partial solutions matrices.
@@ -61,7 +61,7 @@ def ecmtc(num_resources: int,
                     minimal_energy_costs[i][t] = energy_cost_new_solution
                     minimal_time_costs[i][t] = time_cost_new_solution
                     partial_solutions[i][t] = j
-    # Extract the optimal schedule.
+    # Extract the optimal schedule (X*).
     t = num_tasks
     optimal_schedule = zeros(num_resources, dtype=int)
     for i in reversed(range(num_resources)):
@@ -71,5 +71,5 @@ def ecmtc(num_resources: int,
     # (V) Organize the final solution.
     minimal_energy_consumption = minimal_energy_costs[num_resources-1][num_tasks]
     minimal_makespan = minimal_time_costs[num_resources-1][num_tasks]
-    # Return the optimal schedule, the minimal makespan, and the minimal energy consumption.
-    return optimal_schedule, minimal_makespan, minimal_energy_consumption
+    # Return the optimal schedule (X*), the minimal energy consumption (ΣE), and the minimal makespan (Cₘₐₓ).
+    return optimal_schedule, minimal_energy_consumption, minimal_makespan

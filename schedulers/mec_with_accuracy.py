@@ -43,7 +43,7 @@ def min_max_time(num_resources: int,
                     partial_solutions[i][t] = j
     # (V) Organize the final solution.
     minimal_makespan = float(minimal_time_costs[num_resources-1][num_tasks])
-    # Return the minimal makespan.
+    # Return the minimal makespan (Cₘₐₓ).
     return minimal_makespan
 
 
@@ -53,7 +53,7 @@ def min_sum_energy_then_max_sum_accuracy(num_resources: int,
                                          time_costs: ndarray,
                                          energy_costs: ndarray,
                                          training_accuracies: ndarray,
-                                         max_makespan: float) -> tuple:
+                                         time_limit: float) -> tuple:
     """
     Second step of MEC With Accuracy: finds the minimal energy consumption (ΣE) and then
     the maximal training accuracy (ΣW), in order, to assign tasks to resources, while respecting the time limit (C).
@@ -67,22 +67,22 @@ def min_sum_energy_then_max_sum_accuracy(num_resources: int,
         Task assignment capacities per resource (A)
     time_costs : ndarray(shape=(num_resources, num_tasks+1), object)
         Time costs to process tasks per resource (Ρ)
-    training_accuracies : ndarray(shape=(num_resources, num_tasks+1), object)
-        Training accuracies obtained when processing tasks per resource (W)
     energy_costs : ndarray(shape=(num_resources, num_tasks+1), object)
         Energy costs to process tasks per resource (ε)
-    max_makespan : float
+    training_accuracies : ndarray(shape=(num_resources, num_tasks+1), object)
+        Training accuracies obtained when processing tasks per resource (W)
+    time_limit : float
         Time limit (C)
     Returns
     -------
     optimal_schedule : ndarray(shape=(num_resources), int), minimal_energy_consumption : float, maximal_training_accuracy: float
         Optimal schedule (X*), minimal energy consumption (ΣE), and maximal training accuracy (ΣW).
     """
-    # (I) Filtering: only assignments that respect the maximum makespan.
+    # (I) Filtering: only assignments that respect the time limit (C).
     for i in range(0, num_resources):
         assignment_capacities_i = []
         for j in assignment_capacities[i]:
-            if time_costs[i][j] <= max_makespan:
+            if time_costs[i][j] <= time_limit:
                 assignment_capacities_i.append(j)
         assignment_capacities[i] = array(assignment_capacities_i)
     # (II) Initialization: minimal energy costs, maximal training accuracies, and partial solutions matrices.
@@ -109,7 +109,7 @@ def min_sum_energy_then_max_sum_accuracy(num_resources: int,
                     minimal_energy_costs[i][t] = energy_cost_new_solution
                     maximal_training_accuracies[i][t] = training_accuracy_new_solution
                     partial_solutions[i][t] = j
-    # Extract the optimal schedule.
+    # Extract the optimal schedule (X*).
     t = num_tasks
     optimal_schedule = zeros(num_resources, dtype=int)
     for i in reversed(range(num_resources)):
@@ -119,7 +119,7 @@ def min_sum_energy_then_max_sum_accuracy(num_resources: int,
     # (V) Organize the final solution.
     minimal_energy_consumption = minimal_energy_costs[num_resources-1][num_tasks]
     maximal_training_accuracy = maximal_training_accuracies[num_resources-1][num_tasks]
-    # Return the optimal schedule, the minimal energy consumption, and the maximal training accuracy.
+    # Return the optimal schedule (X*), the minimal energy consumption (ΣE), and the maximal training accuracy (ΣW).
     return optimal_schedule, minimal_energy_consumption, maximal_training_accuracy
 
 
@@ -166,6 +166,6 @@ def mec_with_accuracy(num_resources: int,
                                                energy_costs,
                                                training_accuracies,
                                                minimal_makespan)
-    # Return the optimal schedule, the minimal makespan, the minimal energy consumption,
-    # and the maximal training accuracy.
+    # Return the optimal schedule (X*), the minimal makespan (Cₘₐₓ), the minimal energy consumption (ΣE),
+    # and the maximal training accuracy (ΣW).
     return optimal_schedule, minimal_makespan, minimal_energy_consumption, maximal_training_accuracy
