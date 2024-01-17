@@ -76,10 +76,12 @@ def ecmtc_with_accuracy(num_resources: int,
             if time_costs[i][j] <= minimal_makespan:
                 assignment_capacities_i.append(j)
         assignment_capacities[i] = array(assignment_capacities_i)
-    # (II) Initialization: maximal training accuracy matrix.
+    # (II) Initialization: minimal energy costs and maximal training accuracies matrices.
+    minimal_energy_costs = full(shape=(num_resources, num_tasks+1), fill_value=inf, dtype=float)
     maximal_training_accuracies = zeros(shape=(num_resources, num_tasks+1), dtype=float)
     # (III) Solutions for the first resource (Z₁).
     for j in assignment_capacities[0]:
+        minimal_energy_costs[0][j] = energy_costs[0][j]
         maximal_training_accuracies[0][j] = training_accuracies[0][j]
     # Solutions for other resources (Zᵢ).
     for i in range(1, num_resources):
