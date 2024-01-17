@@ -84,12 +84,23 @@ class TestELASTIC(TestCase):
         # α > 0 && α < 1 --> ni = α * (E_comp_i + E_up_i + 1) - 1, ∀i ∈ I.
         # α == 1 ----------> ni = E_comp_i + E_up_i, ∀i ∈ I.
 
-        # ELASTIC's Algorithm 1: Client Selection.
+        training_accuracies = []  # Training accuracies.
+        for i in range(I):
+            training_accuracy_i = uniform(0, 0.015)  # εᵢ ∼ U(0, 0.15).
+            training_accuracies.append(training_accuracy_i)
+
+        # Solution to ELASTIC's Algorithm 1: Client Selection.
         x, selected_clients, makespan, energy_consumption \
             = elastic_client_selection_algorithm(I, g, D, C, f_max, p_max, N0, B, s, θ, ε, τ, γ, α)
+        training_accuracy = 0
+        for index, value in enumerate(list(x)):
+            if value > 0:
+                training_accuracy_i = training_accuracies[index]
+                training_accuracy += training_accuracy_i
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), I, selected_clients))
         # print("Makespan (s): {0}".format(makespan))
         # print("Energy consumption (J): {0}".format(energy_consumption))
+        # print("Training accuracy: {0}".format(training_accuracy))
 
         # Asserts for the ELASTIC algorithm results.
         expected_x = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -100,7 +111,11 @@ class TestELASTIC(TestCase):
                                      5, 16, 24, 12, 28, 15, 22, 21, 19, 7,
                                      9, 23, 11, 25, 20, 2, 29, 18, 17, 8]
         self.assertSequenceEqual(expected_selected_clients, selected_clients)
+        expect_number_selected_clients = 30
+        self.assertEqual(expect_number_selected_clients, len(selected_clients))
         expected_makespan = 0.4357632632271027
         self.assertEqual(expected_makespan, makespan)
         expected_energy_consumption = 7.074139733231214
         self.assertEqual(expected_energy_consumption, energy_consumption)
+        expected_training_accuracy = 0.24158314367430217
+        self.assertEqual(expected_training_accuracy, training_accuracy)

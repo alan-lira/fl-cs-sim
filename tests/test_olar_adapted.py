@@ -1,11 +1,11 @@
-from numpy import array, inf
+from numpy import array
 from unittest import TestCase
-from schedulers.ecmtc import ecmtc
+from schedulers.olar_adapted import olar_adapted
 
 
-class TestECMTC(TestCase):
+class TestOLARAdapted(TestCase):
 
-    def test_ecmtc_on_olar_paper_example(self) -> None:
+    def test_olar_adapted_on_olar_paper_example(self) -> None:
         # Number of resources and tasks.
         num_resources = 3
         num_tasks = 6
@@ -18,38 +18,40 @@ class TestECMTC(TestCase):
         energy_costs = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Training accuracies set to zero (OLAR paper's example doesn't consider them).
         training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
-        # Solution to ECMTC algorithm.
-        max_makespan = inf
-        optimal_schedule, minimal_energy_consumption, minimal_makespan = ecmtc(num_resources,
-                                                                               num_tasks,
-                                                                               assignment_capacities,
-                                                                               time_costs,
-                                                                               energy_costs,
-                                                                               max_makespan)
-        selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
+        # Solution to OLAR Adapted algorithm.
+        assignment = olar_adapted(num_tasks, num_resources, time_costs, assignment_capacities)
+        # Organize the final solution.
+        selected_clients = [index for index, value in enumerate(list(assignment)) if value > 0]
+        minimal_makespan = 0
+        energy_consumption = 0
         training_accuracy = 0
-        for index, value in enumerate(list(optimal_schedule)):
+        for index, value in enumerate(list(assignment)):
             if value > 0:
+                makespan_i = time_costs[index][value]
+                energy_i = energy_costs[index][value]
                 training_accuracy_i = training_accuracies[index][value]
+                if makespan_i > minimal_makespan:
+                    minimal_makespan = makespan_i
+                energy_consumption += energy_i
                 training_accuracy += training_accuracy_i
-        # print("X*: {0}".format(optimal_schedule))
+        # print("X*: {0}".format(assignment))
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), num_resources, selected_clients))
         # print("Minimal makespan (Cₘₐₓ): {0}".format(minimal_makespan))
-        # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
+        # print("Energy consumption (ΣE): {0}".format(energy_consumption))
         # print("Training accuracy (ΣW): {0}".format(training_accuracy))
-        # Asserts for the ECMTC algorithm results.
+        # Asserts for the OLAR algorithm results.
         expected_number_selected_clients = 3
         self.assertEqual(expected_number_selected_clients, len(selected_clients))
         expected_optimal_schedule = [3, 2, 1]
-        self.assertSequenceEqual(expected_optimal_schedule, list(optimal_schedule))
+        self.assertSequenceEqual(expected_optimal_schedule, list(assignment))
         expected_minimal_makespan = 7.0
         self.assertEqual(expected_minimal_makespan, minimal_makespan)
-        expected_minimal_energy_consumption = 0.0
-        self.assertEqual(expected_minimal_energy_consumption, minimal_energy_consumption)
+        expected_energy_consumption = 0.0
+        self.assertEqual(expected_energy_consumption, energy_consumption)
         expected_training_accuracy = 0.0
         self.assertEqual(expected_training_accuracy, training_accuracy)
 
-    def test_ecmtc_on_mc2mkp_paper_example_1(self) -> None:
+    def test_olar_adapted_on_mc2mkp_paper_example_1(self) -> None:
         # Number of resources and tasks.
         num_resources = 3
         num_tasks = 5
@@ -62,38 +64,40 @@ class TestECMTC(TestCase):
                              dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
         training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
-        # Solution to ECMTC algorithm.
-        max_makespan = inf
-        optimal_schedule, minimal_energy_consumption, minimal_makespan = ecmtc(num_resources,
-                                                                               num_tasks,
-                                                                               assignment_capacities,
-                                                                               time_costs,
-                                                                               energy_costs,
-                                                                               max_makespan)
-        selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
+        # Solution to OLAR Adapted algorithm.
+        assignment = olar_adapted(num_tasks, num_resources, time_costs, assignment_capacities)
+        # Organize the final solution.
+        selected_clients = [index for index, value in enumerate(list(assignment)) if value > 0]
+        minimal_makespan = 0
+        energy_consumption = 0
         training_accuracy = 0
-        for index, value in enumerate(list(optimal_schedule)):
+        for index, value in enumerate(list(assignment)):
             if value > 0:
+                makespan_i = time_costs[index][value]
+                energy_i = energy_costs[index][value]
                 training_accuracy_i = training_accuracies[index][value]
+                if makespan_i > minimal_makespan:
+                    minimal_makespan = makespan_i
+                energy_consumption += energy_i
                 training_accuracy += training_accuracy_i
-        # print("X*: {0}".format(optimal_schedule))
+        # print("X*: {0}".format(assignment))
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), num_resources, selected_clients))
         # print("Minimal makespan (Cₘₐₓ): {0}".format(minimal_makespan))
-        # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
+        # print("Energy consumption (ΣE): {0}".format(energy_consumption))
         # print("Training accuracy (ΣW): {0}".format(training_accuracy))
-        # Asserts for the ECMTC algorithm results.
-        expected_number_selected_clients = 2
+        # Asserts for the OLAR algorithm results.
+        expected_number_selected_clients = 1
         self.assertEqual(expected_number_selected_clients, len(selected_clients))
-        expected_optimal_schedule = [2, 3, 0]
-        self.assertSequenceEqual(expected_optimal_schedule, list(optimal_schedule))
+        expected_optimal_schedule = [5, 0, 0]
+        self.assertSequenceEqual(expected_optimal_schedule, list(assignment))
         expected_minimal_makespan = 0.0
         self.assertEqual(expected_minimal_makespan, minimal_makespan)
-        expected_minimal_energy_consumption = 7.5
-        self.assertEqual(expected_minimal_energy_consumption, minimal_energy_consumption)
+        expected_energy_consumption = 10.0
+        self.assertEqual(expected_energy_consumption, energy_consumption)
         expected_training_accuracy = 0.0
         self.assertEqual(expected_training_accuracy, training_accuracy)
 
-    def test_ecmtc_on_mc2mkp_paper_example_2(self) -> None:
+    def test_olar_adapted_on_mc2mkp_paper_example_2(self) -> None:
         # Number of resources and tasks.
         num_resources = 3
         num_tasks = 8
@@ -106,33 +110,35 @@ class TestECMTC(TestCase):
                              dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
         training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
-        # Solution to ECMTC algorithm.
-        max_makespan = inf
-        optimal_schedule, minimal_energy_consumption, minimal_makespan = ecmtc(num_resources,
-                                                                               num_tasks,
-                                                                               assignment_capacities,
-                                                                               time_costs,
-                                                                               energy_costs,
-                                                                               max_makespan)
-        selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
+        # Solution to OLAR Adapted algorithm.
+        assignment = olar_adapted(num_tasks, num_resources, time_costs, assignment_capacities)
+        # Organize the final solution.
+        selected_clients = [index for index, value in enumerate(list(assignment)) if value > 0]
+        minimal_makespan = 0
+        energy_consumption = 0
         training_accuracy = 0
-        for index, value in enumerate(list(optimal_schedule)):
+        for index, value in enumerate(list(assignment)):
             if value > 0:
+                makespan_i = time_costs[index][value]
+                energy_i = energy_costs[index][value]
                 training_accuracy_i = training_accuracies[index][value]
+                if makespan_i > minimal_makespan:
+                    minimal_makespan = makespan_i
+                energy_consumption += energy_i
                 training_accuracy += training_accuracy_i
-        # print("X*: {0}".format(optimal_schedule))
+        # print("X*: {0}".format(assignment))
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), num_resources, selected_clients))
         # print("Minimal makespan (Cₘₐₓ): {0}".format(minimal_makespan))
-        # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
+        # print("Energy consumption (ΣE): {0}".format(energy_consumption))
         # print("Training accuracy (ΣW): {0}".format(training_accuracy))
-        # Asserts for the ECMTC algorithm results.
-        expected_number_selected_clients = 3
+        # Asserts for the OLAR algorithm results.
+        expected_number_selected_clients = 2
         self.assertEqual(expected_number_selected_clients, len(selected_clients))
-        expected_optimal_schedule = [1, 2, 5]
-        self.assertSequenceEqual(expected_optimal_schedule, list(optimal_schedule))
+        expected_optimal_schedule = [5, 3, 0]
+        self.assertSequenceEqual(expected_optimal_schedule, list(assignment))
         expected_minimal_makespan = 0.0
         self.assertEqual(expected_minimal_makespan, minimal_makespan)
-        expected_minimal_energy_consumption = 11.5
-        self.assertEqual(expected_minimal_energy_consumption, minimal_energy_consumption)
+        expected_energy_consumption = 14.0
+        self.assertEqual(expected_energy_consumption, energy_consumption)
         expected_training_accuracy = 0.0
         self.assertEqual(expected_training_accuracy, training_accuracy)
