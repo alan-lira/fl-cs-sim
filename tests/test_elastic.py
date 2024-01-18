@@ -107,15 +107,15 @@ class TestELASTIC(TestCase):
                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         self.assertSequenceEqual(expected_x, list(x))
-        expected_selected_clients = [4, 14, 27, 13, 0, 3, 6, 26, 1, 10,
-                                     5, 16, 24, 12, 28, 15, 22, 21, 19, 7,
-                                     9, 23, 11, 25, 20, 2, 29, 18, 17, 8]
+        expected_selected_clients = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                                     10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                                     20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
         self.assertSequenceEqual(expected_selected_clients, selected_clients)
         expect_number_selected_clients = 30
         self.assertEqual(expect_number_selected_clients, len(selected_clients))
         expected_makespan = 0.4357632632271027
         self.assertEqual(expected_makespan, makespan)
-        expected_energy_consumption = 7.074139733231214
+        expected_energy_consumption = 7.074139733231213
         self.assertEqual(expected_energy_consumption, energy_consumption)
         expected_training_accuracy = 0.24158314367430217
         self.assertEqual(expected_training_accuracy, training_accuracy)

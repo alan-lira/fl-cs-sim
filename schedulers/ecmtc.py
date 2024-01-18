@@ -1,4 +1,4 @@
-from numpy import array, full, inf, ndarray, zeros
+from numpy import full, inf, ndarray, zeros
 
 
 def ecmtc(num_resources: int,
@@ -31,25 +31,26 @@ def ecmtc(num_resources: int,
         Optimal schedule (X*), minimal energy consumption (ΣE), and minimal makespan (Cₘₐₓ)
     """
     # (I) Filtering: only assignments that respect the time limit (C).
+    assignment_capacities_filtered = []
     for i in range(0, num_resources):
         assignment_capacities_i = []
         for j in assignment_capacities[i]:
             if time_costs[i][j] <= time_limit:
                 assignment_capacities_i.append(j)
-        assignment_capacities[i] = array(assignment_capacities_i)
+        assignment_capacities_filtered.append(assignment_capacities_i)
     # (II) Initialization: minimal costs and partial solutions matrices.
     partial_solutions = zeros(shape=(num_resources, num_tasks+1), dtype=int)
     minimal_energy_costs = full(shape=(num_resources, num_tasks+1), fill_value=inf, dtype=float)
     minimal_time_costs = full(shape=(num_resources, num_tasks+1), fill_value=inf, dtype=float)
     # (III) Solutions for the first resource (Z₁).
-    for j in assignment_capacities[0]:
+    for j in assignment_capacities_filtered[0]:
         partial_solutions[0][j] = j
         minimal_energy_costs[0][j] = energy_costs[0][j]
         minimal_time_costs[0][j] = time_costs[0][j]
     # Solutions for other resources (Zᵢ).
     for i in range(1, num_resources):
         # Test all assignments to resource i.
-        for j in assignment_capacities[i]:
+        for j in assignment_capacities_filtered[i]:
             for t in range(j, num_tasks+1):
                 # (IV) Test new solution.
                 energy_cost_new_solution = minimal_energy_costs[i-1][t-j] + energy_costs[i][j]
