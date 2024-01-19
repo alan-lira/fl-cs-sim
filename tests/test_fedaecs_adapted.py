@@ -18,7 +18,7 @@ class TestFedAECSAdapted(TestCase):
 
         I = 1  # 1 round.
 
-        K = 10  # 20 clients.
+        K = 10  # 10 clients.
 
         num_tasks = 10  # 10 tasks.
 
@@ -79,7 +79,7 @@ class TestFedAECSAdapted(TestCase):
                 b_i.append(b_ik)
             b.append(b_i)
 
-        ε0 = 0.1  # The lower bound of accuracy (0.15).
+        ε0 = 0.1  # The lower bound of accuracy (0.1).
 
         T_max = 1  # Deadline of a global iteration (T_max = 1 seconds).
 
