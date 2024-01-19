@@ -1,12 +1,13 @@
-"""Description of the Experiment:
-  - We generate the costs to up to 10.000 tasks for num_resources
-    where num_resources ∈ {10; 25; 40; 55; 70; 85; 100}.
-  - All costs follow linear functions with RNG seeds [100..199].
-  - We schedule from 1.000 to 10.000 tasks in increments of 100.
-  - We run OLAR_Adapted; MC²MKP_Adapted; ELASTIC_Adapted; FedAECS_Adapted;
-    MEC; MEC_With_Accuracy; ECMTC; and ECMTC_With_Accuracy schedulers.
-  - We use no lower or upper limits.
-  - Every result is verified and logged to a CSV file.
+"""
+# Description of the Experiment:
+#  - We generate the costs to up to 10.000 tasks for num_resources
+#    where num_resources ∈ {10; 25; 40; 55; 70; 85; 100}.
+#  - All costs follow linear functions with RNG seeds [100..199].
+#  - We schedule from 1.000 to 10.000 tasks in increments of 100.
+#  - We run OLAR_Adapted; MC²MKP_Adapted; ELASTIC_Adapted; FedAECS_Adapted;
+#    MEC; MEC_With_Accuracy; ECMTC; and ECMTC_With_Accuracy schedulers.
+#  - We use no lower or upper limits.
+#  - Every result is verified and logged to a CSV file.
 """
 
 from numpy import array, expand_dims, full, inf, sum, zeros
@@ -75,9 +76,8 @@ def run_for_n_resources(num_resources: int,
     logger: Logger
         Logging object
     """
-    # Print the number of resources message.
-    print("\n\t- Executing the experiment for {0} resources...".format(num_resources))
     # Get the execution parameters.
+    experiment_name = execution_parameters["experiment_name"]
     min_tasks = execution_parameters["min_tasks"]
     max_tasks = execution_parameters["max_tasks"]
     step_tasks = execution_parameters["step_tasks"]
@@ -85,6 +85,8 @@ def run_for_n_resources(num_resources: int,
     cost_function_verbose = execution_parameters["cost_function_verbose"]
     low_random = execution_parameters["low_random"]
     high_random = execution_parameters["high_random"]
+    # Print the number of resources message.
+    print("\n\t- Executing the {0} experiment for {1} resources...".format(experiment_name, num_resources))
     # Initialize the cost matrices with zeros.
     time_costs = zeros(shape=(num_resources, max_tasks+1))
     energy_costs = zeros(shape=(num_resources, max_tasks+1))
@@ -103,7 +105,7 @@ def run_for_n_resources(num_resources: int,
                             cost_function_verbose, (0.00002 * low_random), (0.00002 * high_random))
         base_seed += 1
     # Iterate over the number of tasks to assign.
-    for num_tasks in range(min_tasks, max_tasks, step_tasks):
+    for num_tasks in range(min_tasks, max_tasks+1, step_tasks):
         # Print the number of tasks to schedule message.
         print("\n\t\tScheduling {0} tasks:".format(num_tasks))
         # Set the lower and upper assignment limits arrays.
@@ -315,7 +317,7 @@ def run_for_n_resources(num_resources: int,
                 # 8. Run the ECMTC_With_Accuracy algorithm.
                 print("\t\t\t{0}. Using {1}...".format(index+1, scheduler_name))
                 time_limit = inf  # Time limit in seconds (deadline).
-                (ecmtc_with_accuracy_assignment, ecmtc_with_accuracy_makespan, ecmtc_with_accuracy_energy_consumption,
+                (ecmtc_with_accuracy_assignment, ecmtc_with_accuracy_energy_consumption, ecmtc_with_accuracy_makespan,
                  ecmtc_with_accuracy_training_accuracy) \
                     = ecmtc_with_accuracy(num_resources,
                                           num_tasks,
@@ -355,7 +357,7 @@ def run_experiment() -> None:
     logger_verbosity = False
     logger = Logger(experiments_results_csv_file, logger_verbosity)
     # Store the description of the experiments.
-    experiments_description = __doc__.replace("#", "")
+    experiments_description = __doc__
     logger.header(experiments_description)
     # Store the header of the output CSV file.
     experiments_csv_file_header = ("{0},{1},{2},{3},{4},{5},{6}"
@@ -367,7 +369,8 @@ def run_experiment() -> None:
     num_resources_list = [10, 25, 40, 55, 70, 85, 100]
     scheduler_names = ["OLAR_Adapted", "MC²MKP_Adapted", "ELASTIC_Adapted", "FedAECS_Adapted",
                        "MEC", "MEC_With_Accuracy", "ECMTC", "ECMTC_With_Accuracy"]
-    execution_parameters = {"min_tasks": 1000,
+    execution_parameters = {"experiment_name": experiment_name,
+                            "min_tasks": 1000,
                             "max_tasks": 10000,
                             "step_tasks": 100,
                             "rng_seed_resources": 100,
