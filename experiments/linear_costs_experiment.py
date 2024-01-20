@@ -135,9 +135,9 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                    len(assignment_capacities_expanded_shape[num_rounds - 1][num_resources - 1]))
         b = zeros(shape=b_shape)
         ε0 = 0.0  # The lower bound of accuracy.
-        T_max = 50  # Deadline of a global iteration in seconds.
+        T_max = inf  # Deadline of a global iteration in seconds.
         B = inf  # Total bandwidth in Hz.
-        (fedaecs_adapted_assignment, _, _, fedaecs_adapted_num_selected_resources, fedaecs_adapted_makespan,
+        (fedaecs_adapted_assignment, fedaecs_adapted_tasks_assignment, _, _, fedaecs_adapted_makespan,
          fedaecs_adapted_energy_consumption, fedaecs_adapted_training_accuracy) \
             = fedaecs_adapted(num_rounds,
                               num_resources,
@@ -150,15 +150,15 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                               ε0,
                               T_max,
                               B)
-        # fedaecs_adapted_num_selected_resources = get_num_selected_resources(fedaecs_adapted_assignment[0])
+        fedaecs_adapted_num_selected_resources = get_num_selected_resources(fedaecs_adapted_assignment[0])
         # fedaecs_adapted_makespan = get_makespan(time_costs, fedaecs_adapted_assignment[0])
         # fedaecs_adapted_energy_consumption = get_total_cost(energy_costs, fedaecs_adapted_assignment[0])
         # fedaecs_adapted_training_accuracy = get_total_cost(training_accuracies, fedaecs_adapted_assignment[0])
         fedaecs_adapted_result = {"scheduler_name": scheduler_name,
                                   "num_tasks": num_tasks,
                                   "num_resources": num_resources,
-                                  "assignment": fedaecs_adapted_assignment[0],
-                                  "num_selected_resources": fedaecs_adapted_num_selected_resources[0],
+                                  "assignment": fedaecs_adapted_tasks_assignment[0],
+                                  "num_selected_resources": fedaecs_adapted_num_selected_resources,
                                   "makespan": fedaecs_adapted_makespan[0],
                                   "energy_consumption": fedaecs_adapted_energy_consumption[0],
                                   "training_accuracy": fedaecs_adapted_training_accuracy[0]}
