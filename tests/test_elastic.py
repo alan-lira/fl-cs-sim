@@ -113,7 +113,7 @@ class TestELASTIC(TestCase):
         self.assertSequenceEqual(expected_selected_clients, selected_clients)
         expect_number_selected_clients = 30
         self.assertEqual(expect_number_selected_clients, len(selected_clients))
-        expected_makespan = 0.4357632632271027
+        expected_makespan = 0.3505096530113715
         self.assertEqual(expected_makespan, makespan)
         expected_energy_consumption = 7.074139733231213
         self.assertEqual(expected_energy_consumption, energy_consumption)

@@ -33,10 +33,10 @@ def elastic_adapted_client_selection_algorithm(I: int,
         n.append(ni)
     # Sort all the clients in increasing order based on ηi.
     # Denote I′ as the set of sorted clients.
-    sorted_n, I_line_sorted = map(list, zip(*sorted(zip(n, idx), reverse=False)))
+    sorted_n, sorted_idx = map(list, zip(*sorted(zip(n, idx), reverse=False)))
     # Initialize x.
-    x = ones(shape=(len(I_line_sorted)), dtype=int)
-    for _ in I_line_sorted:
+    x = ones(shape=(len(sorted_idx)), dtype=int)
+    for _ in enumerate(sorted_idx):
         # Update the set of participants J based on Constraints (13) and (14).
         # Constraints (13) and (14) define the set of selected clients, which are sorted based on the
         # increasing order of their computational latency.
@@ -46,16 +46,15 @@ def elastic_adapted_client_selection_algorithm(I: int,
         t_j = []
         for index, _ in enumerate(x):
             if x[index] == 1:
-                j_original_idx = I_line_sorted[index]
-                idx_j.append(j_original_idx)
+                idxj = idx[index]
+                idx_j.append(idxj)
                 tj = t[index][A[index]-1]
                 t_j.append(tj)
         sorted_t_j, sorted_J = map(list, zip(*sorted(zip(t_j, idx_j), reverse=False)))
         for index, _ in enumerate(sorted_J):
-            j_sorted_idx = sorted_J[index]
-            j_original_idx = I_line_sorted[index]
-            if t[j_sorted_idx][A[j_sorted_idx]-1] > τ or A[j_original_idx] == 0:
-                x[j_sorted_idx] = 0
+            idxj = idx_j[index]
+            if sorted_t_j[index] > τ or A[idxj] == 0:
+                x[idxj] = 0
                 break
     # Organize the solution.
     tasks_assignment = []
@@ -66,7 +65,7 @@ def elastic_adapted_client_selection_algorithm(I: int,
         tasks_assignment.append(0)
         if x[index] == 1:
             j = idx[index]  # Display the selected clients in ascending order.
-            # j = I_line_sorted[index]  # Display the selected clients sorted by n.
+            # j = sorted_idx[index]  # Display the selected clients sorted by n.
             j_num_tasks_assigned = A[j]
             tasks_assignment[index] = j_num_tasks_assigned
             selected_clients.append(j)

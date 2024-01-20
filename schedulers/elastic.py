@@ -118,10 +118,10 @@ def elastic_client_selection_algorithm(I: int,
         n.append(ni)
     # Sort all the clients in increasing order based on ηi.
     # Denote I′ as the set of sorted clients.
-    sorted_n, I_line_sorted = map(list, zip(*sorted(zip(n, idx), reverse=False)))
+    sorted_n, sorted_idx = map(list, zip(*sorted(zip(n, idx), reverse=False)))
     # Initialize x.
-    x = ones(shape=(len(I_line_sorted)), dtype=int)
-    for i in I_line_sorted:
+    x = ones(shape=(len(sorted_idx)), dtype=int)
+    for _ in enumerate(sorted_idx):
         # Update the set of participants J based on Constraints (13) and (14).
         # Constraints (13) and (14) define the set of selected clients, which are sorted based on the
         # increasing order of their computational latency.
@@ -131,8 +131,8 @@ def elastic_client_selection_algorithm(I: int,
         t_j = []
         for index, _ in enumerate(x):
             if x[index] == 1:
-                j_original_idx = I_line_sorted[index]
-                idx_j.append(j_original_idx)
+                idxj = idx[index]
+                idx_j.append(idxj)
                 t_comp_j = t_comp[index]
                 t_j.append(t_comp_j)
         sorted_t_j, sorted_J = map(list, zip(*sorted(zip(t_j, idx_j), reverse=False)))
@@ -147,12 +147,13 @@ def elastic_client_selection_algorithm(I: int,
         # Calculate t_wait_j based on Eq. (6).
         t_wait_aux = generate_t_wait_array(sorted_J, t_comp_aux, t_up_aux)
         for index, _ in enumerate(sorted_J):
+            idxj = idx_j[index]
             # Get t_comp_j, t_wait_j, and t_up_j, calculated based on Eqs. (3), (6), and (5), respectively.
             t_comp_j = t_comp_aux[index]
             t_wait_j = t_wait_aux[index][1]
             t_up_j = t_up_aux[index]
             if t_comp_j + t_wait_j + t_up_j > τ:
-                x[i] = 0
+                x[idxj] = 0
                 break
     # Organizing the solution.
     selected_clients = []
@@ -161,7 +162,7 @@ def elastic_client_selection_algorithm(I: int,
     for index, _ in enumerate(x):
         if x[index] == 1:
             j = index  # Display the selected clients in ascending order.
-            # j = I_line_sorted[index]  # Display the selected clients sorted by n.
+            # j = sorted_idx[index]  # Display the selected clients sorted by n.
             t_wait_index = [i for i, x in enumerate(t_wait_aux) if x[0] == j][0]
             selected_clients.append(j)
             makespan_j = t_comp[j] + t_wait_aux[t_wait_index][1] + t_up[j]
