@@ -95,7 +95,7 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         mean_tasks = num_tasks // num_resources
         # But it still may have some leftovers. If so, they will be added to the first resource.
         leftover = num_tasks % num_resources
-        for i in range(num_resources):
+        for _ in range(num_resources):
             Ai = mean_tasks
             assignment_capacities_elastic.append(Ai)
         assignment_capacities_elastic[0] += leftover
@@ -132,7 +132,7 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         # Bandwidth information per resource per round.
         b_shape = (num_rounds,
                    num_resources,
-                   len(assignment_capacities_expanded_shape[num_rounds - 1][num_resources - 1]))
+                   len(assignment_capacities_expanded_shape[num_rounds-1][num_resources-1]))
         b = zeros(shape=b_shape)
         ε0 = 0.0  # The lower bound of accuracy.
         T_max = inf  # Deadline of a global iteration in seconds.
@@ -287,7 +287,7 @@ def check_and_store(scheduler_result: dict,
     training_accuracy = scheduler_result["training_accuracy"]
     # Check if all tasks were assigned.
     if not check_total_assigned(num_tasks, assignment):
-        failed_assignment_message = ("-- {0} failed to assign {1} tasks to {2} resources ({3} were assigned)."
+        failed_assignment_message = ("Attention: {0} failed to assign {1} tasks to {2} resources ({3} were assigned)!"
                                      .format(scheduler_name, num_tasks, num_resources, sum(assignment)))
         print(failed_assignment_message)
     # Store the experiment result.
@@ -356,7 +356,7 @@ def run_for_n_resources(num_resources: int,
     print("\n{0}: Multiprocessing is {1}!".format(datetime.now(),
                                                   "enabled" if use_multiprocessing else "disabled"))
     # Number of resources message.
-    print("\n{0}: Executing the {1} experiment for {2} resources..."
+    print("\n{0}: Executing the '{1}' experiment for {2} resources..."
           .format(datetime.now(), experiment_name, num_resources))
     # Initialize the cost matrices with zeros.
     time_costs = zeros(shape=(num_resources, max_tasks+1))
@@ -364,15 +364,15 @@ def run_for_n_resources(num_resources: int,
     training_accuracies = zeros(shape=(num_resources, max_tasks+1))
     # Fill the cost matrices with costs based on a nlogn function.
     base_seed = rng_seed_resources
-    for i in range(num_resources):
+    for resource_index in range(num_resources):
         # Fill the time_costs matrix.
-        create_nlogn_costs(base_seed, time_costs, i, max_tasks,
+        create_nlogn_costs(base_seed, time_costs, resource_index, max_tasks,
                            cost_function_verbose, low_random, high_random)
         # Fill the energy_costs matrix.
-        create_nlogn_costs(base_seed, energy_costs, i, max_tasks,
+        create_nlogn_costs(base_seed, energy_costs, resource_index, max_tasks,
                            cost_function_verbose, (0.32 * low_random), (0.32 * high_random))
         # Fill the training_accuracies matrix.
-        create_nlogn_costs(base_seed, training_accuracies, i, max_tasks,
+        create_nlogn_costs(base_seed, training_accuracies, resource_index, max_tasks,
                            cost_function_verbose, (0.00002 * low_random), (0.00002 * high_random))
         base_seed += 1
     # Iterate over the number of tasks to assign.
@@ -384,8 +384,9 @@ def run_for_n_resources(num_resources: int,
         upper_assignment_limits = full(shape=num_resources, fill_value=num_tasks, dtype=int)
         # Set the assignment capacities matrix.
         assignment_capacities = []
-        for i in range(num_resources):
-            assignment_capacities_i = list(range(lower_assignment_limits[i], upper_assignment_limits[i]))
+        for resource_index in range(num_resources):
+            assignment_capacities_i = list(range(lower_assignment_limits[resource_index],
+                                                 upper_assignment_limits[resource_index]))
             assignment_capacities.append(assignment_capacities_i)
         assignment_capacities = array(assignment_capacities)
         # Whether to use multiprocessing or not.
@@ -453,7 +454,7 @@ def run_experiment() -> None:
     # Set the experiment name.
     experiment_name = "nlogn costs"
     # Start message.
-    print("{0}: Starting the {1} experiment...".format(datetime.now(), experiment_name))
+    print("{0}: Starting the '{1}' experiment...".format(datetime.now(), experiment_name))
     # Set the output CSV file to store the results.
     experiments_results_csv_file = Path("experiments_results/nlogn_costs_experiment_results.csv")
     # Create the parents directories of the output file (if not exist yet).
@@ -500,7 +501,7 @@ def run_experiment() -> None:
     # Get the elapsed time in seconds.
     elapsed_time_seconds = round((perf_counter_stop - perf_counter_start), 2)
     # End message.
-    print("\n{0}: The {1} experiment was successfully executed! (Elapsed time: {2} {3})"
+    print("\n{0}: The '{1}' experiment was successfully executed! (Elapsed time: {2} {3})"
           .format(datetime.now(),
                   experiment_name,
                   elapsed_time_seconds,
