@@ -1,9 +1,9 @@
 """
 # Description of the Experiment:
-#  - We generate the costs to up to 10.000 tasks for num_resources
+#  - We generate the costs to up to 10000 tasks for num_resources
 #    where num_resources ∈ {10; 25; 40; 55; 70; 85; 100}.
 #  - All costs follow linear functions with RNG seeds [100..199].
-#  - We schedule from 1.000 to 10.000 tasks in increments of 100.
+#  - We schedule from 1000 to 10000 tasks in increments of 100.
 #  - We run OLAR_Adapted; MC²MKP_Adapted; ELASTIC_Adapted; FedAECS_Adapted;
 #    MEC; MEC_With_Accuracy; ECMTC; and ECMTC_With_Accuracy schedulers.
 #  - We use no lower or upper limits.
@@ -452,11 +452,11 @@ def run_experiment() -> None:
     # Start the performance counter.
     perf_counter_start = perf_counter()
     # Set the experiment name.
-    experiment_name = "linear costs"
+    experiment_name = "linear_costs"
     # Start message.
     print("{0}: Starting the '{1}' experiment...".format(datetime.now(), experiment_name))
     # Set the output CSV file to store the results.
-    experiments_results_csv_file = Path("experiments_results/linear_costs_experiment_results.csv")
+    experiments_results_csv_file = Path("experiments_results/{0}_experiment_results.csv".format(experiment_name))
     # Create the parents directories of the output file (if not exist yet).
     experiments_results_csv_file.parent.mkdir(exist_ok=True, parents=True)
     # Remove the output file (if exists).

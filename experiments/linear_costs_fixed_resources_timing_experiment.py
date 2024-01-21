@@ -1,8 +1,8 @@
 """
 # Description of the Experiment:
-#  - We generate the costs to up to 2000 tasks for 10 to 100 resources with steps of 15.
-#  - All costs follow linear functions with RNG seeds [100..184].
-#  - We schedule 2000 tasks.
+#  - We generate the costs to up to 2000 tasks for 100 resources.
+#  - All costs follow linear functions with RNG seeds [100..199].
+#  - We schedule from 200 to 2000 tasks in increments of 200.
 #  - We run OLAR_Adapted; MC²MKP_Adapted; ELASTIC_Adapted; FedAECS_Adapted;
 #    MEC; MEC_With_Accuracy; ECMTC; and ECMTC_With_Accuracy schedulers.
 #  - We use no lower or upper limits.
@@ -268,9 +268,9 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
     return scheduler_execution_result
 
 
-def run_for_fixed_tasks(schedulers_names: list,
-                        execution_parameters: dict,
-                        logger: Logger) -> None:
+def run_for_fixed_resources(schedulers_names: list,
+                            execution_parameters: dict,
+                            logger: Logger) -> None:
     """
     Runs experiments for a fixed number of tasks.
     Parameters
@@ -284,10 +284,10 @@ def run_for_fixed_tasks(schedulers_names: list,
     """
     # Get the execution parameters.
     experiment_name = execution_parameters["experiment_name"]
-    num_tasks = execution_parameters["num_tasks"]
-    min_resources = execution_parameters["min_resources"]
-    max_resources = execution_parameters["max_resources"]
-    step_resources = execution_parameters["step_resources"]
+    num_resources = execution_parameters["num_resources"]
+    min_tasks = execution_parameters["min_tasks"]
+    max_tasks = execution_parameters["max_tasks"]
+    step_tasks = execution_parameters["step_tasks"]
     size_of_sample = execution_parameters["size_of_sample"]
     number_of_samples = execution_parameters["number_of_samples"]
     shuffle_initial_seed = execution_parameters["shuffle_initial_seed"]
@@ -297,8 +297,8 @@ def run_for_fixed_tasks(schedulers_names: list,
     high_random = execution_parameters["high_random"]
     # Counting the rounds of the experiment to update the RNG seed.
     rounds = 0
-    # Iterate over the number of resources.
-    for num_resources in range(min_resources, max_resources, step_resources):
+    # Iterate over the number of tasks.
+    for num_tasks in range(min_tasks, max_tasks, step_tasks):
         # Number of resources message.
         print("\n{0}: Executing the '{1}' experiment for {2} resources..."
               .format(datetime.now(), experiment_name, num_resources))
@@ -362,7 +362,7 @@ def run_experiment() -> None:
     # Start the performance counter.
     perf_counter_start = perf_counter()
     # Set the experiment name.
-    experiment_name = "linear_costs_fixed_tasks_timing"
+    experiment_name = "linear_costs_fixed_resources_timing"
     # Start message.
     print("{0}: Starting the '{1}' experiment...".format(datetime.now(), experiment_name))
     # Set the output CSV file to store the results.
@@ -385,10 +385,10 @@ def run_experiment() -> None:
     scheduler_names = ["OLAR_Adapted", "MC²MKP_Adapted", "ELASTIC_Adapted", "FedAECS_Adapted",
                        "MEC", "MEC_With_Accuracy", "ECMTC", "ECMTC_With_Accuracy"]
     execution_parameters = {"experiment_name": experiment_name,
-                            "num_tasks": 2000,
-                            "min_resources": 10,
-                            "max_resources": 100,
-                            "step_resources": 15,
+                            "num_resources": 100,
+                            "min_tasks": 200,
+                            "max_tasks": 2000,
+                            "step_tasks": 200,
                             "size_of_sample": 5,
                             "number_of_samples": 20,
                             "shuffle_initial_seed": 1000,
@@ -397,9 +397,9 @@ def run_experiment() -> None:
                             "low_random": 1,
                             "high_random": 10}
     # Run the experiments.
-    run_for_fixed_tasks(scheduler_names,
-                        execution_parameters,
-                        logger)
+    run_for_fixed_resources(scheduler_names,
+                            execution_parameters,
+                            logger)
     # Finish logging.
     logger.finish()
     # Stop the performance counter.
