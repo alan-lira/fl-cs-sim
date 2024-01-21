@@ -114,11 +114,6 @@ def fedaecs(I: int,
         init_qualified_client_bandwidth = []
         init_qualified_client_index = []
         init_unqualified_client_index = []
-        obj = []
-        selection_possibilities = []
-        selection_possibilities_model_accuracies = []
-        selection_possibilities_total_bandwidths = []
-        qualified_selection = []
         # Optimization variables.
         beta_line_i = zeros(shape=K, dtype=int)
         beta_star_i = zeros(shape=K, dtype=int)
@@ -173,6 +168,7 @@ def fedaecs(I: int,
                             beta_star_i[client_index] = 1
                             the_first_qualified_client_index = beta_star_i
                             # Check the combination selection of the previous clients.
+                            selection_possibilities = []
                             for t in range(0, m):
                                 s = array(list(combinations(range(0, m), t)))
                                 if not any(s):
@@ -180,6 +176,8 @@ def fedaecs(I: int,
                                 for si in s:
                                     selection_possibilities.append(list(si))
                             selection_possibilities.append(list(range(0, m)))
+                            qualified_selection = []
+                            obj = []
                             # Calculate the model accuracy and total bandwidth for each selection possibility.
                             for selection_possibility in selection_possibilities:
                                 sum_accuracy_select_idx = 0
@@ -188,24 +186,21 @@ def fedaecs(I: int,
                                     sum_accuracy_select_idx += sorted_client_accuracy[client_idx]
                                     sum_bandwidth_select_idx += sorted_client_bandwidth[client_idx]
                                 model_accuracy_select_idx = calculate_Γ(sum_accuracy_select_idx)
-                                selection_possibilities_model_accuracies.append(model_accuracy_select_idx)
-                                selection_possibilities_total_bandwidths.append(sum_bandwidth_select_idx)
-                            for u in range(len(selection_possibilities)):
                                 # Check the constraints are whether satisfied.
-                                if (selection_possibilities_model_accuracies[u] >= ε0 and
-                                        selection_possibilities_total_bandwidths[u] <= B):
+                                if (model_accuracy_select_idx >= ε0 and
+                                        sum_bandwidth_select_idx <= B):
                                     # Calculate the total energy consumption of the qualified selection.
                                     total_energy_qualified_select_idx = 0
-                                    for client_idx in selection_possibilities[u]:
+                                    for client_idx in selection_possibility:
                                         total_energy_qualified_select_idx += sorted_client_energy[client_idx]
                                     # Calculate the objective function.
                                     f_obj = (total_energy_qualified_select_idx /
-                                             selection_possibilities_model_accuracies[u])
+                                             model_accuracy_select_idx)
                                     obj = list(obj)
                                     # Store the objective function value.
                                     obj.append(f_obj)
                                     # Store the qualified selection.
-                                    qualified_selection.append(selection_possibilities[u])
+                                    qualified_selection.append(selection_possibility)
                             obj = array(obj)
                             # Check whether there is a client selection for combinatorial optimization
                             # satisfying constraints.
