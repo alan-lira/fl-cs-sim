@@ -1,9 +1,9 @@
 """
 # Description of the Experiment:
-#  - We generate the costs to up to 10000 tasks for num_resources
+#  - We generate the costs to up to 5000 tasks for num_resources
 #    where num_resources ∈ {10; 25; 40; 55; 70; 85; 100}.
 #  - All costs follow linear functions with RNG seeds [100..199].
-#  - We schedule from 1000 to 10000 tasks in increments of 100.
+#  - We schedule from 1000 to 5000 tasks in increments of 100.
 #  - We run OLAR_Adapted; MC²MKP_Adapted; ELASTIC_Adapted; FedAECS_Adapted;
 #    MEC; MEC_With_Accuracy; ECMTC; and ECMTC_With_Accuracy schedulers.
 #  - We use no lower or upper limits.
@@ -482,7 +482,7 @@ def run_experiment() -> None:
                             "num_queue_consumers": 1,
                             "num_queue_producers": 8,
                             "min_tasks": 1000,
-                            "max_tasks": 10000,
+                            "max_tasks": 5000,
                             "step_tasks": 100,
                             "rng_seed_resources": 100,
                             "cost_function_verbose": False,
