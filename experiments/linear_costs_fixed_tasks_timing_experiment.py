@@ -298,7 +298,7 @@ def run_for_fixed_tasks(schedulers_names: list,
     # Counting the rounds of the experiment to update the RNG seed.
     rounds = 0
     # Iterate over the number of resources.
-    for num_resources in range(min_resources, max_resources, step_resources):
+    for num_resources in range(min_resources, max_resources+1, step_resources):
         # Number of resources message.
         print("\n{0}: Executing the '{1}' experiment for {2} resources..."
               .format(datetime.now(), experiment_name, num_resources))

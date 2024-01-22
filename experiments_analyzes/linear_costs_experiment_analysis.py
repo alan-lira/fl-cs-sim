@@ -48,14 +48,17 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                         title=None,
                         frameon=True)
             output_figure_file = Path("fig-{0}-{1}-{2}.pdf".format(experiment_name, n_resources, metric_name.lower()))
-            savefig(experiments_analysis_results_folder.joinpath(output_figure_file), bbox_inches="tight")
+            output_figure_file_full_path = experiments_analysis_results_folder.joinpath(output_figure_file)
+            savefig(output_figure_file_full_path, bbox_inches="tight")
+            print("Figure '{0}' was successfully generated.".format(output_figure_file_full_path))
 
 
-def compare_schedulers_performance(execution_parameters: dict) -> None:
+def compare_schedulers_metrics_performance(execution_parameters: dict) -> None:
     experiments_results_df = execution_parameters["experiments_results_df"]
     scheduler_names = execution_parameters["scheduler_names"]
     metrics_names = execution_parameters["metrics_names"]
     target_scheduler = execution_parameters["target_scheduler"]
+    print("\nSchedulers metrics performance comparison:\n")
     for metric_name in metrics_names:
         target_scheduler_cost = experiments_results_df[experiments_results_df["Scheduler_Name"] ==
                                                        target_scheduler][metric_name].reset_index(drop=True)
@@ -66,7 +69,7 @@ def compare_schedulers_performance(execution_parameters: dict) -> None:
                 greater = sum(other_cost > target_scheduler_cost)
                 equal = sum(other_cost == target_scheduler_cost)
                 less = sum(other_cost < target_scheduler_cost)
-                comparison_message = ("Number of times '{0}' provided a '{1}' value that is "
+                comparison_message = ("- Number of times '{0}' provided a '{1}' value that is "
                                       "greater, equal, or smaller than '{2}': {3}, {4}, and {5}, respectively."
                                       .format(scheduler, metric_name, target_scheduler, greater, equal, less))
                 print(comparison_message)
@@ -110,8 +113,8 @@ def run_experiment_analysis() -> None:
     set_palette("hls", len(scheduler_names))
     # Generate the experiments results figures.
     generate_experiments_results_figures(execution_parameters)
-    # Check how many times other schedulers met the performance of the target scheduler.
-    compare_schedulers_performance(execution_parameters)
+    # Check how many times other schedulers met the performance of the target scheduler for a set of metrics.
+    compare_schedulers_metrics_performance(execution_parameters)
     # Stop the performance counter.
     perf_counter_stop = perf_counter()
     # Get the elapsed time in seconds.
