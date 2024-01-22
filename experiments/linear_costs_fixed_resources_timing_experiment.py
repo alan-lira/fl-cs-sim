@@ -7,7 +7,7 @@
 #    MEC; MEC_With_Accuracy; ECMTC; and ECMTC_With_Accuracy schedulers.
 #  - We use no lower or upper limits.
 #  - Each sample is composed of 5 executions of the schedulers.
-#  - We get 20 samples for each pair (scheduler, tasks)
+#  - We get 20 samples for each pair (scheduler; tasks)
 #  - The order of execution of the different schedulers is randomly defined.
 #    We set an initial RNG seed = 1000 and increase it every time we need a new order.
 #  - Every result is logged to a CSV file.

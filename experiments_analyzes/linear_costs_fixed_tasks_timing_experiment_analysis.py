@@ -16,10 +16,10 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
     experiment_name = execution_parameters["experiment_name"]
     experiments_analysis_results_folder = execution_parameters["experiments_analysis_results_folder"]
     experiments_results_df = execution_parameters["experiments_results_df"]
-    num_resources = execution_parameters["num_resources"]
+    num_tasks = execution_parameters["num_tasks"]
     metrics_names = execution_parameters["metrics_names"]
     # Generate a figure for each (num_resources, metric_name) tuple.
-    for n_resources in num_resources:
+    for n_tasks in num_tasks:
         for metric_name in metrics_names:
             if metric_name == "Num_Selected_Resources":
                 y_label = metric_name.replace("_", " ").replace("Num", "Number of").capitalize()
@@ -38,11 +38,11 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
             rcParams["xtick.labelsize"] = 13
             rcParams["ytick.labelsize"] = 13
             rcParams["legend.fontsize"] = 12
-            xlabel("Number of tasks", fontsize=13)
+            xlabel("Number of resources", fontsize=13)
             ylabel(y_label, fontsize=13)
-            xticks(ticks=list(experiments_results_df["Num_Tasks"].sort_values().unique()), rotation=15)
-            ax = lineplot(data=experiments_results_df[experiments_results_df.Num_Resources == n_resources],
-                          x="Num_Tasks",
+            xticks(ticks=list(experiments_results_df["Num_Resources"].sort_values().unique()), rotation=15)
+            ax = lineplot(data=experiments_results_df[experiments_results_df.Num_Tasks == n_tasks],
+                          x="Num_Resources",
                           y="Execution_Time_Avg" if metric_name == "Execution_Time" else metric_name,
                           hue="Scheduler_Name",
                           style="Scheduler_Name",
@@ -59,7 +59,7 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                         ncol=3,
                         title=None,
                         frameon=True)
-            output_figure_file = Path("fig-{0}-{1}-{2}.pdf".format(experiment_name, n_resources, metric_name.lower()))
+            output_figure_file = Path("fig-{0}-{1}-{2}.pdf".format(experiment_name, n_tasks, metric_name.lower()))
             output_figure_file_full_path = experiments_analysis_results_folder.joinpath(output_figure_file)
             savefig(output_figure_file_full_path, bbox_inches="tight")
             print("Figure '{0}' was successfully generated.".format(output_figure_file_full_path))
@@ -92,21 +92,21 @@ def show_execution_time_distribution(execution_parameters: dict) -> None:
     num_tasks = execution_parameters["num_tasks"]
     num_resources = execution_parameters["num_resources"]
     scheduler_names = execution_parameters["scheduler_names"]
-    print("\nExecution time distribution for scheduling {0} and {1} tasks on {2} resources with different schedulers:\n"
-          .format(min(num_tasks), max(num_tasks), num_resources[0]))
+    print("\nExecution time distribution for scheduling {0} tasks on {1} and {2} resources with different schedulers:\n"
+          .format(num_tasks[0], min(num_resources), max(num_resources)))
     # Each sample contains 5 measurements of the execution time.
     # Calculate their average execution time and convert it from seconds to microseconds (1 µs = 1e+6 s).
     size_of_sample = 5
     experiments_results_df["Execution_Time_Avg"] \
         = experiments_results_df["Execution_Time"] * pow(10, 6) / size_of_sample
     for scheduler in scheduler_names:
-        for tasks in (min(num_tasks), max(num_tasks)):
+        for resources in (min(num_resources), max(num_resources)):
             resulting_df \
                 = experiments_results_df[(experiments_results_df["Scheduler_Name"] == scheduler) &
-                                         (experiments_results_df["Num_Tasks"] == tasks)].Execution_Time_Avg
-            print("- Scheduler '{0}' with {1} tasks:\n{2}\n"
+                                         (experiments_results_df["Num_Resources"] == resources)].Execution_Time_Avg
+            print("- Scheduler '{0}' with {1} resources:\n{2}\n"
                   .format(scheduler,
-                          tasks,
+                          resources,
                           resulting_df.describe()))
 
 
@@ -115,10 +115,10 @@ def perform_kolmogorov_smirnov_tests(execution_parameters: dict) -> None:
     num_tasks = execution_parameters["num_tasks"]
     num_resources = execution_parameters["num_resources"]
     scheduler_names = execution_parameters["scheduler_names"]
-    # Get the step of tasks.
-    step_tasks = num_tasks[1] - num_tasks[0]
-    print("\nKolmogorov-Smirnov tests for scheduling from {0} to {1} tasks on {2} resources with different schedulers:"
-          .format(min(num_tasks), max(num_tasks), num_resources[0]))
+    # Get the step of resources.
+    step_resources = num_resources[1] - num_resources[0]
+    print("\nKolmogorov-Smirnov tests for scheduling {0} tasks on {1} to {2} resources with different schedulers:"
+          .format(num_tasks[0], min(num_resources), max(num_resources)))
     print("Note: Results with p-values < 0.05 means that they do not follow normal distributions.\n")
     # Each sample contains 5 measurements of the execution time.
     # Calculate their average execution time and convert it from seconds to microseconds (1 µs = 1e+6 s).
@@ -128,13 +128,13 @@ def perform_kolmogorov_smirnov_tests(execution_parameters: dict) -> None:
     # Set the seed.
     seed(2022)
     for scheduler in scheduler_names:
-        for tasks in range(min(num_tasks), max(num_tasks)+1, step_tasks):
+        for resources in range(min(num_resources), max(num_resources)+1, step_resources):
             resulting_df \
                 = list(experiments_results_df[(experiments_results_df["Scheduler_Name"] == scheduler) &
-                                              (experiments_results_df["Num_Tasks"] == tasks)].Execution_Time_Avg)
-            print("- Scheduler '{0}' with {1} tasks:\n{2}\n"
+                                              (experiments_results_df["Num_Resources"] == resources)].Execution_Time_Avg)
+            print("- Scheduler '{0}' with {1} resources:\n{2}\n"
                   .format(scheduler,
-                          tasks,
+                          resources,
                           stats.kstest(resulting_df, "norm", args=(mean(resulting_df), std(resulting_df)))))
 
 
@@ -142,7 +142,7 @@ def run_experiment_analysis() -> None:
     # Start the performance counter.
     perf_counter_start = perf_counter()
     # Set the experiment name.
-    experiment_name = "linear_costs_fixed_resources_timing"
+    experiment_name = "linear_costs_fixed_tasks_timing"
     # Start message.
     print("{0}: Starting the '{1}' experiment's analysis...".format(datetime.now(), experiment_name))
     # Get the experiments results CSV file.
@@ -180,7 +180,7 @@ def run_experiment_analysis() -> None:
     generate_experiments_results_figures(execution_parameters)
     # Check how many times other schedulers met the performance of the target scheduler for a set of metrics.
     compare_schedulers_metrics_performance(execution_parameters)
-    # Show the execution time distribution per scheduler per number of tasks.
+    # Show the execution time distribution per scheduler per number of resources.
     show_execution_time_distribution(execution_parameters)
     # Perform Kolmogorov-Smirnov tests.
     perform_kolmogorov_smirnov_tests(execution_parameters)
