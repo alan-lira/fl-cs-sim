@@ -31,11 +31,13 @@ class TestELASTICAdapted(TestCase):
             Ai = mean_tasks
             assignment_capacities.append(Ai)
         assignment_capacities[0] += leftover
+        assignment_capacities = array(assignment_capacities)
 
         time_costs = []  # Time costs to process tasks per resource.
         for i in range(I):
             time_costs_i = uniform(0, 10.001, T)  # tᵢ ∼ U(0, 10) seconds.
             time_costs.append(time_costs_i)
+        time_costs = array(time_costs)
 
         energy_costs = []  # Energy costs to process tasks per resource.
         for i in range(I):
@@ -44,6 +46,7 @@ class TestELASTICAdapted(TestCase):
                 energy_cost_i = time_costs[i][t] * uniform(0, 5.001)  # Eᵢ ∼ U(0, 5) × tᵢ Joules.
                 energy_costs_i.append(energy_cost_i)
             energy_costs.append(energy_costs_i)
+        energy_costs = array(energy_costs)
 
         training_accuracies = []  # Training accuracies per tasks per resource.
         for i in range(I):
@@ -63,7 +66,7 @@ class TestELASTICAdapted(TestCase):
         # α == 1 ----------> ni = E_comp_i + E_up_i, ∀i ∈ I.
 
         # Solution to ELASTIC's Adapted Algorithm 1: Client Selection.
-        x, selected_clients, makespan, energy_consumption \
+        x, tasks_assignment, selected_clients, makespan, energy_consumption \
             = elastic_adapted_client_selection_algorithm(I, assignment_capacities, time_costs, energy_costs, τ, α)
         training_accuracy = 0
         for index, value in enumerate(list(x)):
@@ -71,6 +74,7 @@ class TestELASTICAdapted(TestCase):
                 training_accuracy_i = training_accuracies[index][value]
                 training_accuracy += training_accuracy_i
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), I, selected_clients))
+        # print("Tasks assignment: {0}".format(tasks_assignment))
         # print("Makespan (s): {0}".format(makespan))
         # print("Energy consumption (J): {0}".format(energy_consumption))
         # print("Training accuracy: {0}".format(training_accuracy))
@@ -80,15 +84,19 @@ class TestELASTICAdapted(TestCase):
                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         self.assertSequenceEqual(expected_x, list(x))
-        expected_selected_clients = [23, 17, 25, 27, 5, 19, 0, 13, 29, 20,
-                                     1, 12, 21, 24, 4, 7, 9, 22, 26, 6,
-                                     15, 3, 14, 16, 8, 28, 18, 10, 11, 2]
+        expected_selected_clients = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                                     10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                                     20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
         self.assertSequenceEqual(expected_selected_clients, selected_clients)
         expect_number_selected_clients = 30
         self.assertEqual(expect_number_selected_clients, len(selected_clients))
-        expected_makespan = 9.735729158265277
+        expected_tasks_assignment = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.assertSequenceEqual(expected_tasks_assignment, tasks_assignment)
+        expected_makespan = 9.554789901660609
         self.assertEqual(expected_makespan, makespan)
-        expected_energy_consumption = 352.93469393438716
+        expected_energy_consumption = 408.9881986892813
         self.assertEqual(expected_energy_consumption, energy_consumption)
         expected_training_accuracy = 0.22868502471427568
         self.assertEqual(expected_training_accuracy, training_accuracy)
@@ -107,6 +115,7 @@ class TestELASTICAdapted(TestCase):
             Ai = mean_tasks
             assignment_capacities.append(Ai)
         assignment_capacities[0] += leftover
+        assignment_capacities = array(assignment_capacities)
         # The cost arrays doesn't contain the costs of scheduling 0 tasks.
         # Monotonically increasing time costs.
         time_costs = array([[2, 4, 7, 9, 11, 14], [1, 3, 5, 7, 9, 11], [6, 10, 15, 22, 23, 27]],
@@ -126,7 +135,7 @@ class TestELASTICAdapted(TestCase):
         # α == 1 ----------> ni = E_comp_i + E_up_i, ∀i ∈ I.
 
         # Solution to ELASTIC's Adapted Algorithm 1: Client Selection.
-        x, selected_clients, makespan, energy_consumption \
+        x, tasks_assignment, selected_clients, makespan, energy_consumption \
             = elastic_adapted_client_selection_algorithm(I, assignment_capacities, time_costs, energy_costs, τ, α)
         training_accuracy = 0
         for index, value in enumerate(list(x)):
@@ -134,6 +143,7 @@ class TestELASTICAdapted(TestCase):
                 training_accuracy_i = training_accuracies[index][value]
                 training_accuracy += training_accuracy_i
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), I, selected_clients))
+        # print("Tasks assignment: {0}".format(tasks_assignment))
         # print("Makespan (s): {0}".format(makespan))
         # print("Energy consumption (J): {0}".format(energy_consumption))
         # print("Training accuracy: {0}".format(training_accuracy))
@@ -145,7 +155,9 @@ class TestELASTICAdapted(TestCase):
         self.assertSequenceEqual(expected_selected_clients, selected_clients)
         expect_number_selected_clients = 3
         self.assertEqual(expect_number_selected_clients, len(selected_clients))
-        expected_makespan = 10.0
+        expected_tasks_assignment = [2, 2, 2]
+        self.assertSequenceEqual(expected_tasks_assignment, tasks_assignment)
+        expected_makespan = 15.0
         self.assertEqual(expected_makespan, makespan)
         expected_energy_consumption = 0.0
         self.assertEqual(expected_energy_consumption, energy_consumption)
@@ -166,6 +178,7 @@ class TestELASTICAdapted(TestCase):
             Ai = mean_tasks
             assignment_capacities.append(Ai)
         assignment_capacities[0] += leftover
+        assignment_capacities = array(assignment_capacities)
         # The cost arrays doesn't contain the costs of scheduling 0 tasks.
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
         time_costs = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
@@ -185,7 +198,7 @@ class TestELASTICAdapted(TestCase):
         # α == 1 ----------> ni = E_comp_i + E_up_i, ∀i ∈ I.
 
         # Solution to ELASTIC's Adapted Algorithm 1: Client Selection.
-        x, selected_clients, makespan, energy_consumption \
+        x, tasks_assignment, selected_clients, makespan, energy_consumption \
             = elastic_adapted_client_selection_algorithm(I, assignment_capacities, time_costs, energy_costs, τ, α)
         training_accuracy = 0
         for index, value in enumerate(list(x)):
@@ -193,6 +206,7 @@ class TestELASTICAdapted(TestCase):
                 training_accuracy_i = training_accuracies[index][value]
                 training_accuracy += training_accuracy_i
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), I, selected_clients))
+        # print("Tasks assignment: {0}".format(tasks_assignment))
         # print("Makespan (s): {0}".format(makespan))
         # print("Energy consumption (J): {0}".format(energy_consumption))
         # print("Training accuracy: {0}".format(training_accuracy))
@@ -200,13 +214,15 @@ class TestELASTICAdapted(TestCase):
         # Asserts for the ELASTIC adapted algorithm results.
         expected_x = [1, 1, 1]
         self.assertSequenceEqual(expected_x, list(x))
-        expected_selected_clients = [1, 2, 0]
+        expected_selected_clients = [0, 1, 2]
         self.assertSequenceEqual(expected_selected_clients, selected_clients)
         expect_number_selected_clients = 3
         self.assertEqual(expect_number_selected_clients, len(selected_clients))
+        expected_tasks_assignment = [3, 1, 1]
+        self.assertSequenceEqual(expected_tasks_assignment, tasks_assignment)
         expected_makespan = 0.0
         self.assertEqual(expected_makespan, makespan)
-        expected_energy_consumption = 10.0
+        expected_energy_consumption = 14.5
         self.assertEqual(expected_energy_consumption, energy_consumption)
         expected_training_accuracy = 0.0
         self.assertEqual(expected_training_accuracy, training_accuracy)
@@ -225,6 +241,7 @@ class TestELASTICAdapted(TestCase):
             Ai = mean_tasks
             assignment_capacities.append(Ai)
         assignment_capacities[0] += leftover
+        assignment_capacities = array(assignment_capacities)
         # The cost arrays doesn't contain the costs of scheduling 0 tasks.
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
         time_costs = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
@@ -244,7 +261,7 @@ class TestELASTICAdapted(TestCase):
         # α == 1 ----------> ni = E_comp_i + E_up_i, ∀i ∈ I.
 
         # Solution to ELASTIC's Adapted Algorithm 1: Client Selection.
-        x, selected_clients, makespan, energy_consumption \
+        x, tasks_assignment, selected_clients, makespan, energy_consumption \
             = elastic_adapted_client_selection_algorithm(I, assignment_capacities, time_costs, energy_costs, τ, α)
         training_accuracy = 0
         for index, value in enumerate(list(x)):
@@ -252,6 +269,7 @@ class TestELASTICAdapted(TestCase):
                 training_accuracy_i = training_accuracies[index][value]
                 training_accuracy += training_accuracy_i
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), I, selected_clients))
+        # print("Tasks assignment: {0}".format(tasks_assignment))
         # print("Makespan (s): {0}".format(makespan))
         # print("Energy consumption (J): {0}".format(energy_consumption))
         # print("Training accuracy: {0}".format(training_accuracy))
@@ -259,13 +277,15 @@ class TestELASTICAdapted(TestCase):
         # Asserts for the ELASTIC adapted algorithm results.
         expected_x = [1, 1, 1]
         self.assertSequenceEqual(expected_x, list(x))
-        expected_selected_clients = [1, 2, 0]
+        expected_selected_clients = [0, 1, 2]
         self.assertSequenceEqual(expected_selected_clients, selected_clients)
         expect_number_selected_clients = 3
         self.assertEqual(expect_number_selected_clients, len(selected_clients))
+        expected_tasks_assignment = [4, 2, 2]
+        self.assertSequenceEqual(expected_tasks_assignment, tasks_assignment)
         expected_makespan = 0.0
         self.assertEqual(expected_makespan, makespan)
-        expected_energy_consumption = 14.5
+        expected_energy_consumption = 19
         self.assertEqual(expected_energy_consumption, energy_consumption)
         expected_training_accuracy = 0.0
         self.assertEqual(expected_training_accuracy, training_accuracy)

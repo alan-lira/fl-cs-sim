@@ -1,6 +1,6 @@
 from itertools import combinations
 from math import inf, log
-from numpy import any, argmin, array, zeros
+from numpy import any, argmin, array, ndarray, zeros
 
 
 def calculate_Γ(sum_εi: float) -> float:
@@ -10,11 +10,11 @@ def calculate_Γ(sum_εi: float) -> float:
 def fedaecs_adapted(I: int,
                     K: int,
                     num_tasks: int,
-                    A: array,
-                    T: array,
-                    E: array,
-                    ε: array,
-                    b: array,
+                    A: ndarray,
+                    T: ndarray,
+                    E: ndarray,
+                    ε: ndarray,
+                    b: ndarray,
                     ε0: float,
                     T_max: float,
                     B: float) -> tuple:
@@ -56,12 +56,6 @@ def fedaecs_adapted(I: int,
         init_qualified_client_bandwidth = []
         init_qualified_client_index = []
         init_unqualified_client_index = []
-        obj = []
-        selection_possibilities = []
-        selection_possibilities_model_accuracies = []
-        selection_possibilities_total_bandwidths = []
-        selection_possibilities_num_tasks = []
-        qualified_selection = []
         # Optimization variables.
         beta_line_i = zeros(shape=K, dtype=int)
         beta_star_i = zeros(shape=K, dtype=int)
@@ -148,6 +142,7 @@ def fedaecs_adapted(I: int,
                             the_first_qualified_client_index = beta_star_i
                             the_first_qualified_client_index_tasks = beta_star_tasks_i
                             # Check the combination selection of the previous clients.
+                            selection_possibilities = []
                             for t in range(0, m):
                                 s = array(list(combinations(range(0, m), t)))
                                 if not any(s):
@@ -155,6 +150,8 @@ def fedaecs_adapted(I: int,
                                 for si in s:
                                     selection_possibilities.append(list(si))
                             selection_possibilities.append(list(range(0, m)))
+                            qualified_selection = []
+                            obj = []
                             # Calculate the model accuracy and total bandwidth for each selection possibility.
                             for selection_possibility in selection_possibilities:
                                 sum_accuracy_select_idx = 0
@@ -165,29 +162,25 @@ def fedaecs_adapted(I: int,
                                     sum_bandwidth_select_idx += sorted_client_bandwidth[client_idx]
                                     sum_tasks_select_idx += sorted_client_capacity[client_idx]
                                 model_accuracy_select_idx = calculate_Γ(sum_accuracy_select_idx)
-                                selection_possibilities_model_accuracies.append(model_accuracy_select_idx)
-                                selection_possibilities_total_bandwidths.append(sum_bandwidth_select_idx)
-                                selection_possibilities_num_tasks.append(sum_tasks_select_idx)
-                            for u in range(len(selection_possibilities)):
                                 # Check the constraints are whether satisfied.
-                                if (selection_possibilities_model_accuracies[u] >= ε0 and
-                                        selection_possibilities_total_bandwidths[u] <= B and
-                                        selection_possibilities_num_tasks[u] <= num_tasks):
+                                if (model_accuracy_select_idx >= ε0 and
+                                        sum_bandwidth_select_idx <= B and
+                                        sum_tasks_select_idx + num_tasks_assigned >= num_tasks):
                                     # Calculate the total energy consumption of the qualified selection.
                                     total_energy_qualified_select_idx = 0
-                                    for client_idx in selection_possibilities[u]:
+                                    for client_idx in selection_possibility:
                                         total_energy_qualified_select_idx += sorted_client_energy[client_idx]
                                     # Calculate the objective function.
-                                    if selection_possibilities_model_accuracies[u] > 0:
+                                    if model_accuracy_select_idx > 0:
                                         f_obj = (total_energy_qualified_select_idx /
-                                                 selection_possibilities_model_accuracies[u])
+                                                 model_accuracy_select_idx)
                                     else:
                                         f_obj = inf
                                     obj = list(obj)
                                     # Store the objective function value.
                                     obj.append(f_obj)
                                     # Store the qualified selection.
-                                    qualified_selection.append(selection_possibilities[u])
+                                    qualified_selection.append(selection_possibility)
                             obj = array(obj)
                             # Check whether there is a client selection for combinatorial optimization
                             # satisfying constraints.
@@ -195,7 +188,8 @@ def fedaecs_adapted(I: int,
                                 # y is the location (index) of objective function minimum value.
                                 y = argmin(obj)
                                 # Further compare the optimal values for the objective function.
-                                if obj[y] <= sorted_client_n[m]:
+                                if (obj[y] <= sorted_client_n[m] or
+                                        sorted_client_capacity[m] + num_tasks_assigned < num_tasks):
                                     f_obj_beta_star_i = obj[y]
                                     for qs_idx in qualified_selection[y]:
                                         client_index = sorted_client_index[qs_idx]

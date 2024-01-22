@@ -1,5 +1,5 @@
 from math import log2, pow
-from numpy import array, ones
+from numpy import array, ndarray, ones
 
 
 def calculate_t_comp(θ: float,
@@ -17,22 +17,22 @@ def calculate_t_wait(t_comp_j: float,
     return max(0.0, t_comp_j + t_wait_j + t_up_j - t_comp_j_plus_one)
 
 
-def generate_t_wait_array(J: array,
-                          t_comp: array,
-                          t_up: array) -> array:
+def generate_t_wait_array(J: ndarray,
+                          t_comp: ndarray,
+                          t_up: ndarray) -> ndarray:
     t_wait = []
     for index, _ in enumerate(J):
         if index == 0:
             t_wait_j_plus_one = 0.0
             t_wait.append((J[index], t_wait_j_plus_one))
         else:
-            t_comp_j = t_comp[index-1]
+            t_comp_j = float(t_comp[index-1])
             t_wait_j = t_wait[index-1][1]
-            t_up_j = t_up[index-1]
-            t_comp_j_plus_one = t_comp[index]
+            t_up_j = float(t_up[index-1])
+            t_comp_j_plus_one = float(t_comp[index])
             t_wait_j_plus_one = calculate_t_wait(t_comp_j, t_wait_j, t_up_j, t_comp_j_plus_one)
             t_wait.append((J[index], t_wait_j_plus_one))
-    return t_wait
+    return array(t_wait)
 
 
 def calculate_ri(B: float,
@@ -65,10 +65,10 @@ def calculate_ni(α: float,
 
 
 def elastic_client_selection_algorithm(I: int,
-                                       g: array,
-                                       D: array,
-                                       C: array,
-                                       f_max: array,
+                                       g: ndarray,
+                                       D: ndarray,
+                                       C: ndarray,
+                                       f_max: ndarray,
                                        p_max: float,
                                        N0: float,
                                        B: float,
@@ -79,6 +79,7 @@ def elastic_client_selection_algorithm(I: int,
                                        γ: float,
                                        α: float) -> tuple:
     # ∀i ∈ I, fi = f_max_i , pi = p_max_i , and compute ηi.
+    idx = []
     t_comp = []
     t_up = []
     t_wait_aux = []
@@ -89,6 +90,8 @@ def elastic_client_selection_algorithm(I: int,
     r = []
     n = []
     for i in range(I):
+        # Set idx.
+        idx.append(i)
         # Set fi.
         fi = f_max[i]
         f.append(fi)
@@ -96,16 +99,16 @@ def elastic_client_selection_algorithm(I: int,
         pi = p_max
         p.append(pi)
         # Calculate t_comp_i.
-        t_comp_i = calculate_t_comp(θ, ε, C[i], D[i], fi)
+        t_comp_i = calculate_t_comp(θ, ε, float(C[i]), float(D[i]), float(fi))
         t_comp.append(t_comp_i)
         # Calculate ri.
-        ri = calculate_ri(B, pi, g[i], N0)
+        ri = calculate_ri(B, pi, float(g[i]), N0)
         r.append(ri)
         # Calculate t_up_i.
         t_up_i = calculate_t_up(s, ri)
         t_up.append(t_up_i)
         # Calculate E_comp_i.
-        E_comp_i = calculate_E_comp(t_comp_i, fi, γ)
+        E_comp_i = calculate_E_comp(t_comp_i, float(fi), γ)
         E_comp.append(E_comp_i)
         # Calculate E_up_i.
         E_up_i = calculate_E_up(pi, t_up_i)
@@ -115,45 +118,42 @@ def elastic_client_selection_algorithm(I: int,
         n.append(ni)
     # Sort all the clients in increasing order based on ηi.
     # Denote I′ as the set of sorted clients.
-    I_line_sorted = []
-    for i in range(I):
-        I_line_sorted.append([i, n[i]])
-    I_line_sorted = sorted(I_line_sorted, key=lambda x: x[1])
-    I_line_sorted = [x[0] for x in I_line_sorted]
+    sorted_n, sorted_idx = map(list, zip(*sorted(zip(n, idx), reverse=False)))
     # Initialize x.
-    x = ones(shape=(len(I_line_sorted)), dtype=int)
-    for i in I_line_sorted:
+    x = ones(shape=(len(sorted_idx)), dtype=int)
+    for _ in enumerate(sorted_idx):
         # Update the set of participants J based on Constraints (13) and (14).
         # Constraints (13) and (14) define the set of selected clients, which are sorted based on the
         # increasing order of their computational latency.
         # Constraint 13: J = {i ∈ I| xi = 1}
         # Constraint 14: ∀j ∈ J, t_comp_j ≤ t_comp_j+1
-        J = []
+        idx_j = []
+        t_j = []
         for index, _ in enumerate(x):
             if x[index] == 1:
-                j = I_line_sorted[index]
+                idxj = idx[index]
+                idx_j.append(idxj)
                 t_comp_j = t_comp[index]
-                J.append([j, t_comp_j])
-        J_sorted = sorted(J, key=lambda x: x[1])
-        J_sorted = [x[0] for x in J_sorted]
-        J = J_sorted
+                t_j.append(t_comp_j)
+        sorted_t_j, sorted_J = map(list, zip(*sorted(zip(t_j, idx_j), reverse=False)))
         t_comp_aux = []
         t_up_aux = []
-        for index, _ in enumerate(J):
-            j = J[index]
-            t_comp_aux.append(t_comp[j])
-            t_up_aux.append(t_up[j])
+        for index, _ in enumerate(sorted_J):
+            j_sorted_idx = sorted_J[index]
+            t_comp_aux.append(t_comp[j_sorted_idx])
+            t_up_aux.append(t_up[j_sorted_idx])
         t_comp_aux = array(t_comp_aux)
         t_up_aux = array(t_up_aux)
         # Calculate t_wait_j based on Eq. (6).
-        t_wait_aux = generate_t_wait_array(J, t_comp_aux, t_up_aux)
-        for index, _ in enumerate(J):
+        t_wait_aux = generate_t_wait_array(sorted_J, t_comp_aux, t_up_aux)
+        for index, _ in enumerate(sorted_J):
+            idxj = idx_j[index]
             # Get t_comp_j, t_wait_j, and t_up_j, calculated based on Eqs. (3), (6), and (5), respectively.
             t_comp_j = t_comp_aux[index]
             t_wait_j = t_wait_aux[index][1]
             t_up_j = t_up_aux[index]
             if t_comp_j + t_wait_j + t_up_j > τ:
-                x[i] = 0
+                x[idxj] = 0
                 break
     # Organizing the solution.
     selected_clients = []
@@ -161,7 +161,8 @@ def elastic_client_selection_algorithm(I: int,
     energy_consumption = 0
     for index, _ in enumerate(x):
         if x[index] == 1:
-            j = I_line_sorted[index]
+            j = index  # Display the selected clients in ascending order.
+            # j = sorted_idx[index]  # Display the selected clients sorted by n.
             t_wait_index = [i for i, x in enumerate(t_wait_aux) if x[0] == j][0]
             selected_clients.append(j)
             makespan_j = t_comp[j] + t_wait_aux[t_wait_index][1] + t_up[j]
