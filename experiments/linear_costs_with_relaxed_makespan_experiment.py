@@ -5,7 +5,7 @@
 #  - We schedule from 1000 to 5000 tasks in increments of 100.
 #  - We run MEC; MEC_With_Accuracy; ECMTC; and ECMTC_With_Accuracy schedulers.
 #  - We use no lower or upper limits.
-#  - We use time limit of 10000 units of time.
+#  - We use time limit of 8000 units of time.
 #  - We use relaxation percentages of 0.0 (0%), 0.25 (25%), and 0.50 (50%)
 #    for the minimal makespan found to evaluate the potential energy consumption reductions.
 #  - Every result is verified and logged to a CSV file.
@@ -523,7 +523,7 @@ def run_experiment() -> None:
     # Start the performance counter.
     perf_counter_start = perf_counter()
     # Set the experiment name.
-    experiment_name = "linear_costs"
+    experiment_name = "linear_costs_with_relaxed_makespan"
     # Start message.
     print("{0}: Starting the '{1}' experiment...".format(datetime.now(), experiment_name))
     # Set the output CSV file to store the results.
@@ -554,7 +554,7 @@ def run_experiment() -> None:
                             "min_tasks": 1000,
                             "max_tasks": 5000,
                             "step_tasks": 100,
-                            "time_limit": 10000,
+                            "time_limit": 8000,
                             "makespan_relaxation_percentages": [0, 0.25, 0.50],
                             "rng_seed_resources": 100,
                             "cost_function_verbose": False,

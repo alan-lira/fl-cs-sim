@@ -17,6 +17,7 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
     experiments_analysis_results_folder = execution_parameters["experiments_analysis_results_folder"]
     experiments_results_df = execution_parameters["experiments_results_df"]
     num_resources = execution_parameters["num_resources"]
+    scheduler_names = execution_parameters["scheduler_names"]
     metrics_names = execution_parameters["metrics_names"]
     # Generate a figure for each (num_resources, metric_name) tuple.
     for n_resources in num_resources:
@@ -45,6 +46,7 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                           x="Num_Tasks",
                           y="Execution_Time_Avg" if metric_name == "Execution_Time" else metric_name,
                           hue="Scheduler_Name",
+                          hue_order=scheduler_names,
                           style="Scheduler_Name",
                           dashes=False,
                           markers=True,
