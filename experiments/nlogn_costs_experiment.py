@@ -1,7 +1,6 @@
 """
 # Description of the Experiment:
-#  - We generate the costs to up to 5000 tasks for num_resources
-#    where num_resources ∈ {10; 25; 40; 55; 70; 85; 100}.
+#  - We generate the costs to up to 5000 tasks for 10 and 100 resources.
 #  - All costs follow nlogn functions with RNG seeds [100..199].
 #  - We schedule from 1000 to 5000 tasks in increments of 100.
 #  - We run OLAR_Adapted; MC²MKP_Adapted; ELASTIC_Adapted; FedAECS_Adapted;
@@ -474,7 +473,7 @@ def run_experiment() -> None:
                                            "Training_Accuracy"))
     logger.store(experiments_csv_file_header)
     # Set the execution parameters.
-    num_resources_list = [10, 25, 40, 55, 70, 85, 100]
+    num_resources = [10, 100]
     scheduler_names = ["OLAR_Adapted", "MC²MKP_Adapted", "ELASTIC_Adapted", "FedAECS_Adapted",
                        "MEC", "MEC_With_Accuracy", "ECMTC", "ECMTC_With_Accuracy"]
     execution_parameters = {"experiment_name": experiment_name,
@@ -489,8 +488,8 @@ def run_experiment() -> None:
                             "low_random": 1,
                             "high_random": 10}
     # Run the experiments.
-    for num_resources in num_resources_list:
-        run_for_n_resources(num_resources,
+    for n_resources in num_resources:
+        run_for_n_resources(n_resources,
                             scheduler_names,
                             execution_parameters,
                             logger)
