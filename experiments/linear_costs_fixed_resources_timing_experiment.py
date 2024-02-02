@@ -1,15 +1,18 @@
 """
 # Description of the Experiment:
 #  - We generate the costs to up to 2000 tasks for 100 resources.
-#  - All costs follow linear functions with RNG seeds [100..199].
+#  - All resources costs follow linear functions with RNG seeds starting at 100.
+#  - Time costs were generated using uniformly distributed values ranging from 1 to 10.
+#  - Energy costs were generated using uniformly distributed values ranging from 0.32 to 3.2.
+#  - Accuracy costs were generated using uniformly distributed values ranging from 0.2 to 2.0 (then normalized).
 #  - We schedule from 200 to 2000 tasks in increments of 200.
-#  - We run OLAR_Adapted; MC²MKP_Adapted; ELASTIC_Adapted; FedAECS_Adapted;
-#    MEC; MEC_With_Accuracy; ECMTC; and ECMTC_With_Accuracy schedulers.
-#  - We use no lower or upper limits.
+#  - We run adapted versions of OLAR; MC²MKP; ELASTIC; and FedAECS; and
+#    MEC; MEC+Acc; ECMTC; and ECMTC+Acc schedulers.
+#  - We use no lower or upper task assignment limits for resources.
 #  - Each sample is composed of 5 executions of the schedulers.
 #  - We get 20 samples for each pair (scheduler; tasks)
 #  - The order of execution of the different schedulers is randomly defined.
-#    We set an initial RNG seed = 1000 and increase it every time we need a new order.
+#    We set shuffle seed at 1000 and increase it every time we need a new order.
 #  - Every result is logged to a CSV file.
 """
 
@@ -22,12 +25,12 @@ from timeit import timeit
 
 from devices.linear_cost_device import create_linear_costs
 from schedulers.ecmtc import ecmtc
-from schedulers.ecmtc_with_accuracy import ecmtc_with_accuracy
+from schedulers.ecmtc_plus_acc import ecmtc_plus_acc
 from schedulers.elastic_adapted import elastic_adapted_client_selection_algorithm
 from schedulers.fedaecs_adapted import fedaecs_adapted
 from schedulers.mc2mkp_adapted import mc2mkp_adapted
 from schedulers.mec import mec
-from schedulers.mec_with_accuracy import mec_with_accuracy
+from schedulers.mec_plus_acc import mec_plus_acc
 from schedulers.olar_adapted import olar_adapted
 from util.experiment_util import get_num_selected_resources, get_makespan, get_total_cost
 from util.logger_util import Logger
@@ -44,8 +47,8 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
     training_accuracies = scheduler_execution_parameters["training_accuracies"]
     assignment_capacities = scheduler_execution_parameters["assignment_capacities"]
     scheduler_execution_result = None
-    if scheduler_name == "OLAR_Adapted":
-        # Run the OLAR_Adapted algorithm.
+    if scheduler_name == "OLAR":
+        # Run the adapted version of OLAR algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
         olar_adapted_assignment = olar_adapted(num_tasks,
                                                num_resources,
@@ -64,8 +67,8 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                                "energy_consumption": olar_adapted_energy_consumption,
                                "training_accuracy": olar_adapted_training_accuracy}
         scheduler_execution_result = olar_adapted_result
-    elif scheduler_name == "MC²MKP_Adapted":
-        # Run the MC²MKP_Adapted algorithm.
+    elif scheduler_name == "MC²MKP":
+        # Run the adapted version of MC²MKP algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
         mc2mkp_adapted_assignment = mc2mkp_adapted(num_tasks,
                                                    num_resources,
@@ -84,8 +87,8 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                                  "energy_consumption": mc2mkp_adapted_energy_consumption,
                                  "training_accuracy": mc2mkp_adapted_training_accuracy}
         scheduler_execution_result = mc2mkp_adapted_result
-    elif scheduler_name == "ELASTIC_Adapted":
-        # Run the ELASTIC_Adapted algorithm.
+    elif scheduler_name == "ELASTIC":
+        # Run the adapted version of ELASTIC algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
         τ = inf  # Time limit in seconds (deadline).
         α = 1  # α (0 ≤ α ≤ 1) is a parameter to adjust the weights of the two objectives:
@@ -95,7 +98,7 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         # α > 0 && α < 1 --> ni = α * (E_comp_i + E_up_i + 1) - 1, ∀i ∈ I.
         # α == 1 ----------> ni = E_comp_i + E_up_i, ∀i ∈ I.
         assignment_capacities_elastic = []
-        # Divide the tasks as equally as possible.
+        # Divide the tasks as equally possible.
         mean_tasks = num_tasks // num_resources
         # But it still may have some leftovers. If so, they will be added to the first resource.
         leftover = num_tasks % num_resources
@@ -124,8 +127,8 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                                   "energy_consumption": elastic_adapted_energy_consumption,
                                   "training_accuracy": elastic_adapted_training_accuracy}
         scheduler_execution_result = elastic_adapted_result
-    elif scheduler_name == "FedAECS_Adapted":
-        # Run the FedAECS_Adapted algorithm.
+    elif scheduler_name == "FedAECS":
+        # Run the adapted version of FedAECS algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
         num_rounds = 1  # Number of rounds.
         # Expanded shape of cost functions (FedAECS considers communication rounds).
@@ -189,31 +192,31 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                       "energy_consumption": mec_energy_consumption,
                       "training_accuracy": mec_training_accuracy}
         scheduler_execution_result = mec_result
-    elif scheduler_name == "MEC_With_Accuracy":
-        # Run the MEC_With_Accuracy algorithm.
+    elif scheduler_name == "MEC+Acc":
+        # Run the MEC+Acc algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
-        (mec_with_accuracy_assignment, mec_with_accuracy_makespan, mec_with_accuracy_energy_consumption,
-         mec_with_accuracy_training_accuracy) \
-            = mec_with_accuracy(num_resources,
-                                num_tasks,
-                                assignment_capacities,
-                                time_costs,
-                                energy_costs,
-                                training_accuracies)
-        mec_with_accuracy_num_selected_resources = get_num_selected_resources(mec_with_accuracy_assignment)
-        # mec_with_accuracy_makespan = get_makespan(time_costs, mec_with_accuracy_assignment)
-        # mec_with_accuracy_energy_consumption = get_total_cost(energy_costs, mec_with_accuracy_assignment)
-        # mec_with_accuracy_training_accuracy = get_total_cost(training_accuracies,
-        #                                                      mec_with_accuracy_assignment)
-        mec_with_accuracy_result = {"scheduler_name": scheduler_name,
-                                    "num_tasks": num_tasks,
-                                    "num_resources": num_resources,
-                                    "assignment": mec_with_accuracy_assignment,
-                                    "num_selected_resources": mec_with_accuracy_num_selected_resources,
-                                    "makespan": mec_with_accuracy_makespan,
-                                    "energy_consumption": mec_with_accuracy_energy_consumption,
-                                    "training_accuracy": mec_with_accuracy_training_accuracy}
-        scheduler_execution_result = mec_with_accuracy_result
+        (mec_plus_acc_assignment, mec_plus_acc_makespan, mec_plus_acc_energy_consumption,
+         mec_plus_acc_training_accuracy) \
+            = mec_plus_acc(num_resources,
+                           num_tasks,
+                           assignment_capacities,
+                           time_costs,
+                           energy_costs,
+                           training_accuracies)
+        mec_plus_acc_num_selected_resources = get_num_selected_resources(mec_plus_acc_assignment)
+        # mec_plus_acc_makespan = get_makespan(time_costs, mec_plus_acc_assignment)
+        # mec_plus_acc_energy_consumption = get_total_cost(energy_costs, mec_plus_acc_assignment)
+        # mec_plus_acc_training_accuracy = get_total_cost(training_accuracies,
+        #                                                 mec_plus_acc_assignment)
+        mec_plus_acc_result = {"scheduler_name": scheduler_name,
+                               "num_tasks": num_tasks,
+                               "num_resources": num_resources,
+                               "assignment": mec_plus_acc_assignment,
+                               "num_selected_resources": mec_plus_acc_num_selected_resources,
+                               "makespan": mec_plus_acc_makespan,
+                               "energy_consumption": mec_plus_acc_energy_consumption,
+                               "training_accuracy": mec_plus_acc_training_accuracy}
+        scheduler_execution_result = mec_plus_acc_result
     elif scheduler_name == "ECMTC":
         # Run the ECMTC algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
@@ -238,33 +241,33 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                         "energy_consumption": ecmtc_energy_consumption,
                         "training_accuracy": ecmtc_training_accuracy}
         scheduler_execution_result = ecmtc_result
-    elif scheduler_name == "ECMTC_With_Accuracy":
-        # Run the ECMTC_With_Accuracy algorithm.
+    elif scheduler_name == "ECMTC+Acc":
+        # Run the ECMTC+Acc algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
         time_limit = inf  # Time limit in seconds (deadline).
-        (ecmtc_with_accuracy_assignment, ecmtc_with_accuracy_energy_consumption, ecmtc_with_accuracy_makespan,
-         ecmtc_with_accuracy_training_accuracy) \
-            = ecmtc_with_accuracy(num_resources,
-                                  num_tasks,
-                                  assignment_capacities,
-                                  time_costs,
-                                  energy_costs,
-                                  training_accuracies,
-                                  time_limit)
-        ecmtc_with_accuracy_num_selected_resources = get_num_selected_resources(ecmtc_with_accuracy_assignment)
-        # ecmtc_with_accuracy_makespan = get_makespan(time_costs, ecmtc_with_accuracy_assignment)
-        # ecmtc_with_accuracy_energy_consumption = get_total_cost(energy_costs, ecmtc_with_accuracy_assignment)
-        # ecmtc_with_accuracy_training_accuracy = get_total_cost(training_accuracies,
-        #                                                        ecmtc_with_accuracy_assignment)
-        ecmtc_with_accuracy_result = {"scheduler_name": scheduler_name,
-                                      "num_tasks": num_tasks,
-                                      "num_resources": num_resources,
-                                      "assignment": ecmtc_with_accuracy_assignment,
-                                      "num_selected_resources": ecmtc_with_accuracy_num_selected_resources,
-                                      "makespan": ecmtc_with_accuracy_makespan,
-                                      "energy_consumption": ecmtc_with_accuracy_energy_consumption,
-                                      "training_accuracy": ecmtc_with_accuracy_training_accuracy}
-        scheduler_execution_result = ecmtc_with_accuracy_result
+        (ecmtc_plus_acc_assignment, ecmtc_plus_acc_energy_consumption, ecmtc_plus_acc_makespan,
+         ecmtc_plus_acc_training_accuracy) \
+            = ecmtc_plus_acc(num_resources,
+                             num_tasks,
+                             assignment_capacities,
+                             time_costs,
+                             energy_costs,
+                             training_accuracies,
+                             time_limit)
+        ecmtc_plus_acc_num_selected_resources = get_num_selected_resources(ecmtc_plus_acc_assignment)
+        # ecmtc_plus_acc_makespan = get_makespan(time_costs, ecmtc_plus_acc_assignment)
+        # ecmtc_plus_acc_energy_consumption = get_total_cost(energy_costs, ecmtc_plus_acc_assignment)
+        # ecmtc_plus_acc_training_accuracy = get_total_cost(training_accuracies,
+        #                                                   ecmtc_plus_acc_assignment)
+        ecmtc_plus_acc_result = {"scheduler_name": scheduler_name,
+                                 "num_tasks": num_tasks,
+                                 "num_resources": num_resources,
+                                 "assignment": ecmtc_plus_acc_assignment,
+                                 "num_selected_resources": ecmtc_plus_acc_num_selected_resources,
+                                 "makespan": ecmtc_plus_acc_makespan,
+                                 "energy_consumption": ecmtc_plus_acc_energy_consumption,
+                                 "training_accuracy": ecmtc_plus_acc_training_accuracy}
+        scheduler_execution_result = ecmtc_plus_acc_result
     return scheduler_execution_result
 
 
@@ -290,11 +293,15 @@ def run_for_fixed_resources(schedulers_names: list,
     step_tasks = execution_parameters["step_tasks"]
     size_of_sample = execution_parameters["size_of_sample"]
     number_of_samples = execution_parameters["number_of_samples"]
-    shuffle_initial_seed = execution_parameters["shuffle_initial_seed"]
-    rng_seed_resources = execution_parameters["rng_seed_resources"]
+    shuffle_seed = execution_parameters["shuffle_seed"]
+    rng_resources_seed = execution_parameters["rng_resources_seed"]
     cost_function_verbose = execution_parameters["cost_function_verbose"]
-    low_random = execution_parameters["low_random"]
-    high_random = execution_parameters["high_random"]
+    low_random_training_time = execution_parameters["low_random_training_time"]
+    high_random_training_time = execution_parameters["high_random_training_time"]
+    low_random_training_energy = execution_parameters["low_random_training_energy"]
+    high_random_training_energy = execution_parameters["high_random_training_energy"]
+    low_random_training_accuracy = execution_parameters["low_random_training_accuracy"]
+    high_random_training_accuracy = execution_parameters["high_random_training_accuracy"]
     # Counting the rounds of the experiment to update the RNG seed.
     rounds = 0
     # Iterate over the number of tasks.
@@ -316,8 +323,8 @@ def run_for_fixed_resources(schedulers_names: list,
         assignment_capacities = array(assignment_capacities)
         # Gather all samples for a given (num_tasks, scheduler) tuple.
         for sample in range(number_of_samples):
-            # Set the RNG seed and generate a random order of execution.
-            seed(shuffle_initial_seed + rounds)
+            # Set the shuffle seed and generate a random order of execution.
+            seed(shuffle_seed + rounds)
             rounds += 1
             order = arange(len(schedulers_names))
             shuffle(order)
@@ -328,18 +335,37 @@ def run_for_fixed_resources(schedulers_names: list,
                 energy_costs = zeros(shape=(num_resources, num_tasks+1))
                 training_accuracies = zeros(shape=(num_resources, num_tasks+1))
                 # Fill the cost matrices with costs based on a linear function.
-                base_seed = rng_seed_resources
+                rng_resources_base_seed = rng_resources_seed
                 for resource_index in range(num_resources):
                     # Fill the time_costs matrix.
-                    create_linear_costs(base_seed, time_costs, resource_index, num_tasks,
-                                        cost_function_verbose, low_random, high_random)
+                    create_linear_costs(rng_resources_base_seed,
+                                        time_costs,
+                                        resource_index,
+                                        num_tasks,
+                                        cost_function_verbose,
+                                        low_random_training_time,
+                                        high_random_training_time)
                     # Fill the energy_costs matrix.
-                    create_linear_costs(base_seed, energy_costs, resource_index, num_tasks,
-                                        cost_function_verbose, (0.32 * low_random), (0.32 * high_random))
+                    create_linear_costs(rng_resources_base_seed,
+                                        energy_costs,
+                                        resource_index,
+                                        num_tasks,
+                                        cost_function_verbose,
+                                        low_random_training_energy,
+                                        high_random_training_energy)
                     # Fill the training_accuracies matrix.
-                    create_linear_costs(base_seed, training_accuracies, resource_index, num_tasks,
-                                        cost_function_verbose, (0.00002 * low_random), (0.00002 * high_random))
-                    base_seed += 1
+                    create_linear_costs(rng_resources_base_seed,
+                                        training_accuracies,
+                                        resource_index,
+                                        num_tasks,
+                                        cost_function_verbose,
+                                        low_random_training_accuracy,
+                                        high_random_training_accuracy)
+                    # Normalize the training_accuracies matrix (to avoid sum of training accuracies higher than 1.0).
+                    training_accuracies = ((training_accuracies - training_accuracies.min()) /
+                                           (training_accuracies - training_accuracies.min()).sum())
+                    # Increment the base seed for resources.
+                    rng_resources_base_seed += 1
                 # Set the scheduler's execution parameters.
                 scheduler_execution_parameters = {"index": order_index,
                                                   "scheduler_name": schedulers_names[order_index],
@@ -382,8 +408,8 @@ def run_experiment() -> None:
                                    .format("Scheduler_Name", "Num_Tasks", "Num_Resources", "Execution_Time"))
     logger.store(experiments_csv_file_header)
     # Set the execution parameters.
-    scheduler_names = ["OLAR_Adapted", "MC²MKP_Adapted", "ELASTIC_Adapted", "FedAECS_Adapted",
-                       "MEC", "MEC_With_Accuracy", "ECMTC", "ECMTC_With_Accuracy"]
+    scheduler_names = ["OLAR", "MC²MKP", "ELASTIC", "FedAECS",
+                       "MEC", "MEC+Acc", "ECMTC", "ECMTC+Acc"]
     execution_parameters = {"experiment_name": experiment_name,
                             "num_resources": 100,
                             "min_tasks": 200,
@@ -391,11 +417,15 @@ def run_experiment() -> None:
                             "step_tasks": 200,
                             "size_of_sample": 5,
                             "number_of_samples": 20,
-                            "shuffle_initial_seed": 1000,
-                            "rng_seed_resources": 100,
+                            "shuffle_seed": 1000,
+                            "rng_resources_seed": 100,
                             "cost_function_verbose": False,
-                            "low_random": 1,
-                            "high_random": 10}
+                            "low_random_training_time": 1,
+                            "high_random_training_time": 10,
+                            "low_random_training_energy": 0.32,
+                            "high_random_training_energy": 3.2,
+                            "low_random_training_accuracy": 0.2,
+                            "high_random_training_accuracy": 2.0}
     # Run the experiments.
     run_for_fixed_resources(scheduler_names,
                             execution_parameters,

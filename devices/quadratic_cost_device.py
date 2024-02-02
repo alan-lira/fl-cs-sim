@@ -40,8 +40,8 @@ def create_quadratic_costs(rng_seed: int,
     # Generates alpha, beta and gamma
     alpha, beta, gamma = uniform(low_random, high_random, 3)
     if verbose:
-        print(f'[{index}] - Creating quadratic costs with f(x) =' +
-              f' {alpha} + {beta}*x + {gamma}*x^2' +
-              f'. RNG seed = {rng_seed}')
+        print("[Index: {0} | Seed: {1} | α: {2} | β: {3} | γ: {4}] - "
+              "Creating quadratic costs with f(x) = {2} + ({3} * x) + ({4} * x²), for x in [0, {5}]."
+              .format(index, rng_seed, alpha, beta, gamma, tau + 1))
     # Fills row in the matrix
-    matrix[index][:] = [(alpha + (beta * x) + (gamma * pow(x, 2))) for x in range(tau+1)]
+    matrix[index][:] = [(alpha + (beta * x) + (gamma * pow(x, 2))) for x in range(tau + 1)]

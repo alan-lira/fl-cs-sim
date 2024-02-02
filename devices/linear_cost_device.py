@@ -39,8 +39,8 @@ def create_linear_costs(rng_seed: int,
     # Generates alpha and beta
     alpha, beta = uniform(low_random, high_random, 2)
     if verbose:
-        print(f'[{index}] - Creating linear costs with f(x) =' +
-              f' {alpha} + {beta}*x' +
-              f'. RNG seed = {rng_seed}')
+        print("[Index: {0} | Seed: {1} | α: {2} | β: {3}] - "
+              "Creating linear costs with f(x) = {2} + {3} * x, for x in [0, {4}]."
+              .format(index, rng_seed, alpha, beta, tau + 1))
     # Fills row in the matrix
     matrix[index][:] = [(alpha + (beta * x)) for x in range(tau + 1)]

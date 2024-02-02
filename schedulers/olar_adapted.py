@@ -27,8 +27,8 @@ def olar_adapted(tasks: int,
     """
     # Initialization
     heap = []
-    lower_limits = array([min(assignment_capacity_i) for assignment_capacity_i in assignment_capacities])
-    upper_limits = array([max(assignment_capacity_i) for assignment_capacity_i in assignment_capacities])
+    lower_limits = array([assignment_capacity_i[0] for assignment_capacity_i in assignment_capacities])
+    upper_limits = array([assignment_capacity_i[-1] for assignment_capacity_i in assignment_capacities])
     # Assigns lower limit to all resources
     assignment = copy(lower_limits)
     for i in range(resources):

@@ -3,7 +3,7 @@ from matplotlib.pyplot import figure, rcParams, savefig, xlabel, xticks, ylabel
 from numpy import sum
 from pandas import read_csv
 from pathlib import Path
-from seaborn import lineplot, move_legend, set_palette, set_theme
+from seaborn import color_palette, lineplot, move_legend, set_palette, set_theme
 from shutil import rmtree
 from time import perf_counter
 from warnings import filterwarnings
@@ -17,8 +17,19 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
     num_resources = execution_parameters["num_resources"]
     scheduler_names = execution_parameters["scheduler_names"]
     metrics_names = execution_parameters["metrics_names"]
+    x_ticks = execution_parameters["x_ticks"]
+    alpha = execution_parameters["alpha"]
+    theme_style = execution_parameters["theme_style"]
+    line_colors = execution_parameters["line_colors"]
+    line_sizes = execution_parameters["line_sizes"]
+    # Set the visual theme for all matplotlib and seaborn plots.
+    set_theme(style=theme_style)
+    # Set the matplotlib color cycle using a seaborn palette.
+    colors = color_palette(line_colors)
+    set_palette(colors, len(scheduler_names))
     # Generate a figure for each (num_resources, metric_name) tuple.
     for n_resources in num_resources:
+        data = experiments_results_df[experiments_results_df.Num_Resources == n_resources]
         for metric_name in metrics_names:
             if metric_name == "Num_Selected_Resources":
                 y_label = metric_name.replace("_", " ").replace("Num", "Number of").capitalize()
@@ -32,8 +43,8 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
             rcParams["legend.fontsize"] = 12
             xlabel("Number of tasks", fontsize=13)
             ylabel(y_label, fontsize=13)
-            xticks(ticks=list(experiments_results_df["Num_Tasks"].sort_values().unique()), rotation=15)
-            ax = lineplot(data=experiments_results_df[experiments_results_df.Num_Resources == n_resources],
+            xticks(ticks=x_ticks, rotation=15)
+            ax = lineplot(data=data,
                           x="Num_Tasks",
                           y=metric_name,
                           hue="Scheduler_Name",
@@ -41,15 +52,17 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                           style="Scheduler_Name",
                           dashes=False,
                           markers=True,
-                          linewidth=2,
-                          markersize=8)
+                          alpha=alpha,
+                          size="Scheduler_Name",
+                          sizes=line_sizes,
+                          markersize=6)
             move_legend(ax,
                         "lower center",
                         bbox_to_anchor=(.5, 1),
                         ncol=3,
                         title=None,
                         frameon=True)
-            output_figure_file = Path("fig-{0}-{1}-{2}.pdf".format(experiment_name, n_resources, metric_name.lower()))
+            output_figure_file = Path("fig_{0}_{1}_resources_{2}.pdf".format(experiment_name, n_resources, metric_name.lower()))
             output_figure_file_full_path = experiments_analysis_results_folder.joinpath(output_figure_file)
             savefig(output_figure_file_full_path, bbox_inches="tight")
             print("Figure '{0}' was successfully generated.".format(output_figure_file_full_path))
@@ -102,17 +115,23 @@ def run_experiment_analysis() -> None:
     scheduler_names = list(experiments_results_df["Scheduler_Name"].sort_values().unique())
     metrics_names = experiments_results_df.columns.drop(["Scheduler_Name", "Num_Tasks", "Num_Resources"]).to_list()
     target_scheduler = "ECMTC"
+    x_ticks = [0, 1000, 2000, 3000, 4000, 5000]
+    alpha = 0.6
+    theme_style = "whitegrid"
+    line_colors = ["#0000FF", "#00FFFF", "#E0115F", "#FFD700", "#00008B", "#228B22", "#7FFFD4", "#008000"]
+    line_sizes = [2, 2, 2, 2, 5, 9, 5, 9]
     execution_parameters = {"experiment_name": experiment_name,
                             "experiments_analysis_results_folder": experiments_analysis_results_folder,
                             "experiments_results_df": experiments_results_df,
                             "num_resources": num_resources,
                             "scheduler_names": scheduler_names,
                             "metrics_names": metrics_names,
-                            "target_scheduler": target_scheduler}
-    # Set the visual theme for all matplotlib and seaborn plots.
-    set_theme(style="whitegrid")
-    # Set the matplotlib color cycle using a seaborn palette.
-    set_palette("hls", len(scheduler_names))
+                            "target_scheduler": target_scheduler,
+                            "x_ticks": x_ticks,
+                            "alpha": alpha,
+                            "theme_style": theme_style,
+                            "line_colors": line_colors,
+                            "line_sizes": line_sizes}
     # Generate the experiments results figures.
     generate_experiments_results_figures(execution_parameters)
     # Check how many times other schedulers met the performance of the target scheduler for a set of metrics.

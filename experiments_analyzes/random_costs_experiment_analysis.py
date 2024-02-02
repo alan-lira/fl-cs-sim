@@ -51,11 +51,11 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                           hue_order=scheduler_names,
                           style="Scheduler_Name",
                           dashes=False,
-                          markers=False,
+                          markers=True,
                           alpha=alpha,
                           size="Scheduler_Name",
                           sizes=line_sizes,
-                          markersize=8)
+                          markersize=6)
             move_legend(ax,
                         "lower center",
                         bbox_to_anchor=(.5, 1),
@@ -94,7 +94,7 @@ def run_experiment_analysis() -> None:
     # Start the performance counter.
     perf_counter_start = perf_counter()
     # Set the experiment name.
-    experiment_name = "nlogn_costs"
+    experiment_name = "random_costs"
     # Start message.
     print("{0}: Starting the '{1}' experiment's analysis...".format(datetime.now(), experiment_name))
     # Get the experiments results CSV file.

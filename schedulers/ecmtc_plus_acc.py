@@ -1,16 +1,16 @@
 from numpy import full, inf, ndarray, zeros
 
 
-def ecmtc_with_accuracy(num_resources: int,
-                        num_tasks: int,
-                        assignment_capacities: ndarray,
-                        time_costs: ndarray,
-                        energy_costs: ndarray,
-                        training_accuracies: ndarray,
-                        time_limit: float) -> tuple:
+def ecmtc_plus_acc(num_resources: int,
+                   num_tasks: int,
+                   assignment_capacities: ndarray,
+                   time_costs: ndarray,
+                   energy_costs: ndarray,
+                   training_accuracies: ndarray,
+                   time_limit: float) -> tuple:
     """
     Minimal Energy Consumption, Minimal Makespan, and Maximal Training Accuracy FL Schedule under Time Constraint
-    problem (ECMTC With Accuracy): finds an optimal schedule (X*) that minimizes the total energy
+    problem (ECMTC+Acc): finds an optimal schedule (X*) that minimizes the total energy
     consumption (ΣE) and the makespan (Cₘₐₓ), and maximizes the training accuracy (ΣW), in order, while respecting
     the time limit (C).
     Parameters

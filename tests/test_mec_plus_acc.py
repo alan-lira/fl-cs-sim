@@ -1,11 +1,11 @@
-from numpy import array, inf
+from numpy import array
 from unittest import TestCase
-from schedulers.ecmtc_with_accuracy import ecmtc_with_accuracy
+from schedulers.mec_plus_acc import mec_plus_acc
 
 
-class TestECMTCWithAccuracy(TestCase):
+class TestMECPlusAcc(TestCase):
 
-    def test_ecmtc_with_accuracy_on_olar_paper_example(self) -> None:
+    def test_mec_plus_acc_on_olar_paper_example(self) -> None:
         # Number of resources and tasks.
         num_resources = 3
         num_tasks = 6
@@ -18,23 +18,21 @@ class TestECMTCWithAccuracy(TestCase):
         energy_costs = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
         # Training accuracies set to zero (OLAR paper's example doesn't consider them).
         training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
-        # Solution to ECMTC With Accuracy algorithm.
-        max_makespan = inf
-        optimal_schedule, minimal_energy_consumption, minimal_makespan, maximal_training_accuracy \
-            = ecmtc_with_accuracy(num_resources,
-                                  num_tasks,
-                                  assignment_capacities,
-                                  time_costs,
-                                  energy_costs,
-                                  training_accuracies,
-                                  max_makespan)
+        # Solution to MEC+Acc algorithm.
+        optimal_schedule, minimal_makespan, minimal_energy_consumption, maximal_training_accuracy \
+            = mec_plus_acc(num_resources,
+                           num_tasks,
+                           assignment_capacities,
+                           time_costs,
+                           energy_costs,
+                           training_accuracies)
         selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
         # print("X*: {0}".format(optimal_schedule))
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), num_resources, selected_clients))
         # print("Minimal makespan (Cₘₐₓ): {0}".format(minimal_makespan))
         # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
-        # print("Maximal training accuracy (ΣW): {0}".format(maximal_training_accuracy))
-        # Asserts for the ECMTC With Accuracy algorithm results.
+        # print("Maximal Training accuracy (ΣW): {0}".format(maximal_training_accuracy))
+        # Asserts for the MEC+Acc algorithm results.
         expected_number_selected_clients = 3
         self.assertEqual(expected_number_selected_clients, len(selected_clients))
         expected_optimal_schedule = [3, 2, 1]
@@ -46,7 +44,7 @@ class TestECMTCWithAccuracy(TestCase):
         expected_maximal_training_accuracy = 0.0
         self.assertEqual(expected_maximal_training_accuracy, maximal_training_accuracy)
 
-    def test_ecmtc_with_accuracy_on_mc2mkp_paper_example_1(self) -> None:
+    def test_mec_plus_acc_on_mc2mkp_paper_example_1(self) -> None:
         # Number of resources and tasks.
         num_resources = 3
         num_tasks = 5
@@ -59,23 +57,21 @@ class TestECMTCWithAccuracy(TestCase):
                              dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
         training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
-        # Solution to ECMTC algorithm.
-        max_makespan = inf
-        optimal_schedule, minimal_energy_consumption, minimal_makespan, maximal_training_accuracy \
-            = ecmtc_with_accuracy(num_resources,
-                                  num_tasks,
-                                  assignment_capacities,
-                                  time_costs,
-                                  energy_costs,
-                                  training_accuracies,
-                                  max_makespan)
+        # Solution to MEC+Acc algorithm.
+        optimal_schedule, minimal_makespan, minimal_energy_consumption, maximal_training_accuracy \
+            = mec_plus_acc(num_resources,
+                           num_tasks,
+                           assignment_capacities,
+                           time_costs,
+                           energy_costs,
+                           training_accuracies)
         selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
         # print("X*: {0}".format(optimal_schedule))
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), num_resources, selected_clients))
         # print("Minimal makespan (Cₘₐₓ): {0}".format(minimal_makespan))
         # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
-        # print("Maximal training accuracy (ΣW): {0}".format(maximal_training_accuracy))
-        # Asserts for the ECMTC With Accuracy algorithm results.
+        # print("Maximal Training accuracy (ΣW): {0}".format(maximal_training_accuracy))
+        # Asserts for the MEC+Acc algorithm results.
         expected_number_selected_clients = 2
         self.assertEqual(expected_number_selected_clients, len(selected_clients))
         expected_optimal_schedule = [2, 3, 0]
@@ -87,7 +83,7 @@ class TestECMTCWithAccuracy(TestCase):
         expected_maximal_training_accuracy = 0.0
         self.assertEqual(expected_maximal_training_accuracy, maximal_training_accuracy)
 
-    def test_ecmtc_with_accuracy_on_mc2mkp_paper_example_2(self) -> None:
+    def test_mec_plus_acc_on_mc2mkp_paper_example_2(self) -> None:
         # Number of resources and tasks.
         num_resources = 3
         num_tasks = 8
@@ -100,23 +96,21 @@ class TestECMTCWithAccuracy(TestCase):
                              dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
         training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
-        # Solution to ECMTC algorithm.
-        max_makespan = inf
-        optimal_schedule, minimal_energy_consumption, minimal_makespan, maximal_training_accuracy \
-            = ecmtc_with_accuracy(num_resources,
-                                  num_tasks,
-                                  assignment_capacities,
-                                  time_costs,
-                                  energy_costs,
-                                  training_accuracies,
-                                  max_makespan)
+        # Solution to MEC+Acc algorithm.
+        optimal_schedule, minimal_makespan, minimal_energy_consumption, maximal_training_accuracy \
+            = mec_plus_acc(num_resources,
+                           num_tasks,
+                           assignment_capacities,
+                           time_costs,
+                           energy_costs,
+                           training_accuracies)
         selected_clients = [index for index, value in enumerate(optimal_schedule) if value > 0]
         # print("X*: {0}".format(optimal_schedule))
         # print("{0} (out of {1}) clients selected: {2}".format(len(selected_clients), num_resources, selected_clients))
         # print("Minimal makespan (Cₘₐₓ): {0}".format(minimal_makespan))
         # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
-        # print("Maximal training accuracy (ΣW): {0}".format(maximal_training_accuracy))
-        # Asserts for the ECMTC With Accuracy algorithm results.
+        # print("Maximal Training accuracy (ΣW): {0}".format(maximal_training_accuracy))
+        # Asserts for the MEC+Acc algorithm results.
         expected_number_selected_clients = 3
         self.assertEqual(expected_number_selected_clients, len(selected_clients))
         expected_optimal_schedule = [1, 2, 5]

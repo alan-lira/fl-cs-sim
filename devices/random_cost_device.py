@@ -30,10 +30,10 @@ def create_random_costs(rng_seed: int,
     # Sets RNG seed
     seed(rng_seed)
     # Generates random values
-    values = uniform(0, tau, tau+1)
+    values = uniform(0, tau, tau + 1)
     if verbose:
-        print(f'[{index}] - Creating random costs with in' +
-              ' the interval [0, {tau})' +
-              f'. RNG seed = {rng_seed}')
+        print("[Index: {0} | Seed: {1}] - "
+              "Creating random costs within the interval [0, {2})."
+              .format(index, rng_seed, tau))
     # Fills row in the matrix
     matrix[index][:] = values
