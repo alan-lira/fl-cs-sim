@@ -5,7 +5,7 @@ from numpy.random import seed
 from pandas import read_csv
 from pathlib import Path
 from scipy import stats
-from seaborn import lineplot, move_legend, set_palette, set_theme
+from seaborn import color_palette, lineplot, move_legend, set_palette, set_theme
 from shutil import rmtree
 from time import perf_counter
 from warnings import filterwarnings
@@ -19,18 +19,30 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
     num_resources = execution_parameters["num_resources"]
     scheduler_names = execution_parameters["scheduler_names"]
     metrics_names = execution_parameters["metrics_names"]
+    size_of_sample = execution_parameters["size_of_sample"]
+    x_ticks = execution_parameters["x_ticks"]
+    y_ticks = execution_parameters["y_ticks"]
+    y_lim = execution_parameters["y_lim"]
+    alpha = execution_parameters["alpha"]
+    theme_style = execution_parameters["theme_style"]
+    line_colors = execution_parameters["line_colors"]
+    line_sizes = execution_parameters["line_sizes"]
+    # Set the visual theme for all matplotlib and seaborn plots.
+    set_theme(style=theme_style)
+    # Set the matplotlib color cycle using a seaborn palette.
+    colors = color_palette(line_colors)
+    set_palette(colors, len(scheduler_names))
     # Generate a figure for each (num_resources, metric_name) tuple.
     for n_resources in num_resources:
+        data = experiments_results_df[experiments_results_df.Num_Resources == n_resources]
         for metric_name in metrics_names:
             if metric_name == "Num_Selected_Resources":
                 y_label = metric_name.replace("_", " ").replace("Num", "Number of").capitalize()
             elif metric_name == "Execution_Time":
                 # Each sample contains 5 measurements of the execution time.
                 # Calculate their average execution time and convert it from seconds to microseconds (1 µs = 1e+6 s).
-                size_of_sample = 5
-                experiments_results_df["Execution_Time_Avg"] \
-                    = experiments_results_df["Execution_Time"] * pow(10, 6) / size_of_sample
-                y_label = metric_name.replace("_", " ").capitalize() + " (log scale)"
+                data["Execution_Time_Avg"] = data["Execution_Time"] * pow(10, 6) / size_of_sample
+                y_label = metric_name.replace("_", " ").capitalize() + " (µs, log scale)"
             else:
                 y_label = metric_name.replace("_", " ").capitalize()
             figure(figsize=(6, 5))
@@ -41,8 +53,8 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
             rcParams["legend.fontsize"] = 12
             xlabel("Number of tasks", fontsize=13)
             ylabel(y_label, fontsize=13)
-            xticks(ticks=list(experiments_results_df["Num_Tasks"].sort_values().unique()), rotation=15)
-            ax = lineplot(data=experiments_results_df[experiments_results_df.Num_Resources == n_resources],
+            xticks(ticks=x_ticks, rotation=15)
+            ax = lineplot(data=data,
                           x="Num_Tasks",
                           y="Execution_Time_Avg" if metric_name == "Execution_Time" else metric_name,
                           hue="Scheduler_Name",
@@ -50,10 +62,12 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                           style="Scheduler_Name",
                           dashes=False,
                           markers=True,
-                          linewidth=2,
-                          markersize=8)
-            ylim(1, 100000000)
-            yticks([1, 10, 100, 1000, 10000, 100000, 1000000, 100000000])
+                          alpha=alpha,
+                          size="Scheduler_Name",
+                          sizes=line_sizes,
+                          markersize=6)
+            ylim(y_lim)
+            yticks(y_ticks)
             yscale("log")
             move_legend(ax,
                         "lower center",
@@ -61,7 +75,7 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                         ncol=3,
                         title=None,
                         frameon=True)
-            output_figure_file = Path("fig-{0}-{1}-{2}.pdf".format(experiment_name, n_resources, metric_name.lower()))
+            output_figure_file = Path("fig_{0}_{1}_resources_{2}.pdf".format(experiment_name, n_resources, metric_name.lower()))
             output_figure_file_full_path = experiments_analysis_results_folder.joinpath(output_figure_file)
             savefig(output_figure_file_full_path, bbox_inches="tight")
             print("Figure '{0}' was successfully generated.".format(output_figure_file_full_path))
@@ -94,11 +108,11 @@ def show_execution_time_distribution(execution_parameters: dict) -> None:
     num_tasks = execution_parameters["num_tasks"]
     num_resources = execution_parameters["num_resources"]
     scheduler_names = execution_parameters["scheduler_names"]
+    size_of_sample = execution_parameters["size_of_sample"]
     print("\nExecution time distribution for scheduling {0} and {1} tasks on {2} resources with different schedulers:\n"
           .format(min(num_tasks), max(num_tasks), num_resources[0]))
     # Each sample contains 5 measurements of the execution time.
     # Calculate their average execution time and convert it from seconds to microseconds (1 µs = 1e+6 s).
-    size_of_sample = 5
     experiments_results_df["Execution_Time_Avg"] \
         = experiments_results_df["Execution_Time"] * pow(10, 6) / size_of_sample
     for scheduler in scheduler_names:
@@ -117,6 +131,7 @@ def perform_kolmogorov_smirnov_tests(execution_parameters: dict) -> None:
     num_tasks = execution_parameters["num_tasks"]
     num_resources = execution_parameters["num_resources"]
     scheduler_names = execution_parameters["scheduler_names"]
+    size_of_sample = execution_parameters["size_of_sample"]
     # Get the step of tasks.
     step_tasks = num_tasks[1] - num_tasks[0]
     print("\nKolmogorov-Smirnov tests for scheduling from {0} to {1} tasks on {2} resources with different schedulers:"
@@ -124,11 +139,10 @@ def perform_kolmogorov_smirnov_tests(execution_parameters: dict) -> None:
     print("Note: Results with p-values < 0.05 means that they do not follow normal distributions.\n")
     # Each sample contains 5 measurements of the execution time.
     # Calculate their average execution time and convert it from seconds to microseconds (1 µs = 1e+6 s).
-    size_of_sample = 5
     experiments_results_df["Execution_Time_Avg"] \
         = experiments_results_df["Execution_Time"] * pow(10, 6) / size_of_sample
     # Set the seed.
-    seed(2022)
+    seed(2024)
     for scheduler in scheduler_names:
         for tasks in range(min(num_tasks), max(num_tasks)+1, step_tasks):
             resulting_df \
@@ -166,6 +180,14 @@ def run_experiment_analysis() -> None:
     scheduler_names = list(experiments_results_df["Scheduler_Name"].sort_values().unique())
     metrics_names = experiments_results_df.columns.drop(["Scheduler_Name", "Num_Tasks", "Num_Resources"]).to_list()
     target_scheduler = "ECMTC"
+    size_of_sample = 5
+    x_ticks = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]
+    y_ticks = [pow(10, 0), pow(10, 2), pow(10, 4), pow(10, 6), pow(10, 8), pow(10, 10)]
+    y_lim = min(y_ticks), max(y_ticks)
+    alpha = 0.6
+    theme_style = "whitegrid"
+    line_colors = ["#0000FF", "#00FFFF", "#E0115F", "#FFD700", "#00008B", "#228B22", "#7FFFD4", "#008000"]
+    line_sizes = [2, 2, 2, 2, 6, 2, 2, 2]
     execution_parameters = {"experiment_name": experiment_name,
                             "experiments_analysis_results_folder": experiments_analysis_results_folder,
                             "experiments_results_df": experiments_results_df,
@@ -173,11 +195,15 @@ def run_experiment_analysis() -> None:
                             "num_resources": num_resources,
                             "scheduler_names": scheduler_names,
                             "metrics_names": metrics_names,
-                            "target_scheduler": target_scheduler}
-    # Set the visual theme for all matplotlib and seaborn plots.
-    set_theme(style="whitegrid")
-    # Set the matplotlib color cycle using a seaborn palette.
-    set_palette("hls", len(scheduler_names))
+                            "target_scheduler": target_scheduler,
+                            "size_of_sample": size_of_sample,
+                            "x_ticks": x_ticks,
+                            "y_ticks": y_ticks,
+                            "y_lim": y_lim,
+                            "alpha": alpha,
+                            "theme_style": theme_style,
+                            "line_colors": line_colors,
+                            "line_sizes": line_sizes}
     # Generate the experiments results figures.
     generate_experiments_results_figures(execution_parameters)
     # Check how many times other schedulers met the performance of the target scheduler for a set of metrics.

@@ -6,7 +6,7 @@ def min_max_time(num_resources: int,
                  assignment_capacities: ndarray,
                  time_costs: ndarray) -> float:
     """
-    First step of MEC With Accuracy: finds the minimal makespan (Cₘₐₓ) to assign tasks to resources.
+    First step of MEC+Acc: finds the minimal makespan (Cₘₐₓ) to assign tasks to resources.
     Parameters
     ----------
     num_resources : int
@@ -55,7 +55,7 @@ def min_sum_energy_then_max_sum_accuracy(num_resources: int,
                                          training_accuracies: ndarray,
                                          time_limit: float) -> tuple:
     """
-    Second step of MEC With Accuracy: finds the minimal energy consumption (ΣE) and then
+    Second step of MEC+Acc: finds the minimal energy consumption (ΣE) and then
     the maximal training accuracy (ΣW), in order, to assign tasks to resources, while respecting the time limit (C).
     Parameters
     ----------
@@ -124,14 +124,14 @@ def min_sum_energy_then_max_sum_accuracy(num_resources: int,
     return optimal_schedule, minimal_energy_consumption, maximal_training_accuracy
 
 
-def mec_with_accuracy(num_resources: int,
-                      num_tasks: int,
-                      assignment_capacities: ndarray,
-                      time_costs: ndarray,
-                      energy_costs: ndarray,
-                      training_accuracies: ndarray) -> tuple:
+def mec_plus_acc(num_resources: int,
+                 num_tasks: int,
+                 assignment_capacities: ndarray,
+                 time_costs: ndarray,
+                 energy_costs: ndarray,
+                 training_accuracies: ndarray) -> tuple:
     """
-    Minimal Makespan, Minimal Energy Consumption, and Maximal Training Accuracy FL Schedule problem (MEC With Accuracy):
+    Minimal Makespan, Minimal Energy Consumption, and Maximal Training Accuracy FL Schedule problem (MEC+Acc):
     finds an optimal schedule (X*) that minimizes the makespan (Cₘₐₓ), minimizes the total energy consumption (ΣE),
     and maximizes the training accuracy (ΣW), in order.
     Parameters

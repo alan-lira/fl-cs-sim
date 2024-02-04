@@ -94,7 +94,7 @@ def run_experiment_analysis() -> None:
     # Start the performance counter.
     perf_counter_start = perf_counter()
     # Set the experiment name.
-    experiment_name = "nlogn_costs"
+    experiment_name = "random_costs"
     # Start message.
     print("{0}: Starting the '{1}' experiment's analysis...".format(datetime.now(), experiment_name))
     # Get the experiments results CSV file.

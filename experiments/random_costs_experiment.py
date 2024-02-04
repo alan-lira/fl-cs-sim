@@ -1,30 +1,29 @@
 """
 # Description of the Experiment:
 #  - We generate the costs to up to 5000 tasks for 10 and 100 resources.
-#  - All costs follow linear functions with RNG seeds [100..199].
+#  - All resources costs follow random functions with RNG seeds starting at 100.
+#  - Accuracy costs were later normalized.
 #  - We schedule from 1000 to 5000 tasks in increments of 100.
-#  - We run MEC; MEC_With_Accuracy; ECMTC; and ECMTC_With_Accuracy schedulers.
-#  - We use no lower or upper limits.
-#  - We use time limit of 8000 units of time.
-#  - We use relaxation percentages of 0.0 (0%), 0.25 (25%), and 0.50 (50%)
-#    for the minimal makespan found to evaluate the potential energy consumption reductions.
+#  - We run adapted versions of OLAR; MC²MKP; ELASTIC; and FedAECS; and
+#    MEC; MEC+Acc; ECMTC; and ECMTC+Acc schedulers.
+#  - We use no lower or upper task assignment limits for resources.
 #  - Every result is verified and logged to a CSV file.
 """
 
 from datetime import datetime
-from multiprocessing import Manager, Pool, Queue
+from multiprocessing import cpu_count, Manager, Pool, Queue
 from numpy import array, expand_dims, full, inf, sum, zeros
 from pathlib import Path
 from time import perf_counter
 
-from devices.linear_cost_device import create_linear_costs
+from devices.random_cost_device import create_random_costs
 from schedulers.ecmtc import ecmtc
-from schedulers.ecmtc_with_accuracy import ecmtc_with_accuracy
+from schedulers.ecmtc_plus_acc import ecmtc_plus_acc
 from schedulers.elastic_adapted import elastic_adapted_client_selection_algorithm
 from schedulers.fedaecs_adapted import fedaecs_adapted
 from schedulers.mc2mkp_adapted import mc2mkp_adapted
-from schedulers.mec import min_max_time, min_sum_energy
-from schedulers.mec_with_accuracy import min_max_time, min_sum_energy_then_max_sum_accuracy
+from schedulers.mec import mec
+from schedulers.mec_plus_acc import mec_plus_acc
 from schedulers.olar_adapted import olar_adapted
 from util.experiment_util import get_num_selected_resources, get_makespan, get_total_cost, check_total_assigned
 from util.logger_util import Logger
@@ -40,11 +39,9 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
     energy_costs = scheduler_execution_parameters["energy_costs"]
     training_accuracies = scheduler_execution_parameters["training_accuracies"]
     assignment_capacities = scheduler_execution_parameters["assignment_capacities"]
-    time_limit = scheduler_execution_parameters["time_limit"]
-    makespan_relaxation_percentage = scheduler_execution_parameters["makespan_relaxation_percentage"]
     scheduler_execution_result = None
-    if scheduler_name == "OLAR_Adapted":
-        # Run the OLAR_Adapted algorithm.
+    if scheduler_name == "OLAR":
+        # Run the adapted version of OLAR algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
         olar_adapted_assignment = olar_adapted(num_tasks,
                                                num_resources,
@@ -57,16 +54,14 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         olar_adapted_result = {"scheduler_name": scheduler_name,
                                "num_tasks": num_tasks,
                                "num_resources": num_resources,
-                               "time_limit": time_limit,
-                               "makespan_relaxation_percentage": makespan_relaxation_percentage,
                                "assignment": olar_adapted_assignment,
                                "num_selected_resources": olar_adapted_num_selected_resources,
                                "makespan": olar_adapted_makespan,
                                "energy_consumption": olar_adapted_energy_consumption,
                                "training_accuracy": olar_adapted_training_accuracy}
         scheduler_execution_result = olar_adapted_result
-    elif scheduler_name == "MC²MKP_Adapted":
-        # Run the MC²MKP_Adapted algorithm.
+    elif scheduler_name == "MC²MKP":
+        # Run the adapted version of MC²MKP algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
         mc2mkp_adapted_assignment = mc2mkp_adapted(num_tasks,
                                                    num_resources,
@@ -79,18 +74,16 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         mc2mkp_adapted_result = {"scheduler_name": scheduler_name,
                                  "num_tasks": num_tasks,
                                  "num_resources": num_resources,
-                                 "time_limit": time_limit,
-                                 "makespan_relaxation_percentage": makespan_relaxation_percentage,
                                  "assignment": mc2mkp_adapted_assignment,
                                  "num_selected_resources": mc2mkp_adapted_num_selected_resources,
                                  "makespan": mc2mkp_adapted_makespan,
                                  "energy_consumption": mc2mkp_adapted_energy_consumption,
                                  "training_accuracy": mc2mkp_adapted_training_accuracy}
         scheduler_execution_result = mc2mkp_adapted_result
-    elif scheduler_name == "ELASTIC_Adapted":
-        # Run the ELASTIC_Adapted algorithm.
+    elif scheduler_name == "ELASTIC":
+        # Run the adapted version of ELASTIC algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
-        τ = time_limit  # Time limit in seconds (deadline).
+        τ = inf  # Time limit in seconds (deadline).
         α = 1  # α (0 ≤ α ≤ 1) is a parameter to adjust the weights of the two objectives:
         # minimizing the energy consumption of the selected clients and
         # maximizing the number of selected clients for each BS.
@@ -98,7 +91,7 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         # α > 0 && α < 1 --> ni = α * (E_comp_i + E_up_i + 1) - 1, ∀i ∈ I.
         # α == 1 ----------> ni = E_comp_i + E_up_i, ∀i ∈ I.
         assignment_capacities_elastic = []
-        # Divide the tasks as equally as possible.
+        # Divide the tasks as equally possible.
         mean_tasks = num_tasks // num_resources
         # But it still may have some leftovers. If so, they will be added to the first resource.
         leftover = num_tasks % num_resources
@@ -121,16 +114,14 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         elastic_adapted_result = {"scheduler_name": scheduler_name,
                                   "num_tasks": num_tasks,
                                   "num_resources": num_resources,
-                                  "time_limit": time_limit,
-                                  "makespan_relaxation_percentage": makespan_relaxation_percentage,
                                   "assignment": elastic_adapted_tasks_assignment,
                                   "num_selected_resources": elastic_adapted_num_selected_resources,
                                   "makespan": elastic_adapted_makespan,
                                   "energy_consumption": elastic_adapted_energy_consumption,
                                   "training_accuracy": elastic_adapted_training_accuracy}
         scheduler_execution_result = elastic_adapted_result
-    elif scheduler_name == "FedAECS_Adapted":
-        # Run the FedAECS_Adapted algorithm.
+    elif scheduler_name == "FedAECS":
+        # Run the adapted version of FedAECS algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
         num_rounds = 1  # Number of rounds.
         # Expanded shape of cost functions (FedAECS considers communication rounds).
@@ -144,7 +135,7 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                    len(assignment_capacities_expanded_shape[num_rounds-1][num_resources-1]))
         b = zeros(shape=b_shape)
         ε0 = 0.0  # The lower bound of accuracy.
-        T_max = time_limit  # Deadline of a global iteration in seconds.
+        T_max = inf  # Deadline of a global iteration in seconds.
         B = inf  # Total bandwidth in Hz.
         (fedaecs_adapted_assignment, fedaecs_adapted_tasks_assignment, _, _, fedaecs_adapted_makespan,
          fedaecs_adapted_energy_consumption, fedaecs_adapted_training_accuracy) \
@@ -166,8 +157,6 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         fedaecs_adapted_result = {"scheduler_name": scheduler_name,
                                   "num_tasks": num_tasks,
                                   "num_resources": num_resources,
-                                  "time_limit": time_limit,
-                                  "makespan_relaxation_percentage": makespan_relaxation_percentage,
                                   "assignment": fedaecs_adapted_tasks_assignment[0],
                                   "num_selected_resources": fedaecs_adapted_num_selected_resources,
                                   "makespan": fedaecs_adapted_makespan[0],
@@ -177,23 +166,12 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
     elif scheduler_name == "MEC":
         # Run the MEC algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
-        # Execute the first step of MEC to obtain the optimal makespan value.
-        mec_makespan \
-            = min_max_time(num_resources,
-                           num_tasks,
-                           assignment_capacities,
-                           time_costs)
-        # Relax the optimal makespan value according to the current relaxation percentage.
-        mec_makespan_relaxed = mec_makespan * (1 + makespan_relaxation_percentage)
-        # mec_makespan_relaxed = time_limit * (1 + makespan_relaxation_percentage)
-        # Employ the relaxed makespan as the time limit and execute the second step of MEC.
-        mec_assignment, mec_energy_consumption \
-            = min_sum_energy(num_resources,
-                             num_tasks,
-                             assignment_capacities,
-                             time_costs,
-                             energy_costs,
-                             mec_makespan_relaxed)
+        mec_assignment, mec_makespan, mec_energy_consumption \
+            = mec(num_resources,
+                  num_tasks,
+                  assignment_capacities,
+                  time_costs,
+                  energy_costs)
         mec_num_selected_resources = get_num_selected_resources(mec_assignment)
         # mec_makespan = get_makespan(time_costs, mec_assignment)
         # mec_energy_consumption = get_total_cost(energy_costs, mec_assignment)
@@ -201,72 +179,48 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         mec_result = {"scheduler_name": scheduler_name,
                       "num_tasks": num_tasks,
                       "num_resources": num_resources,
-                      "time_limit": time_limit,
-                      "makespan_relaxation_percentage": makespan_relaxation_percentage,
                       "assignment": mec_assignment,
                       "num_selected_resources": mec_num_selected_resources,
-                      "makespan": mec_makespan_relaxed,
+                      "makespan": mec_makespan,
                       "energy_consumption": mec_energy_consumption,
                       "training_accuracy": mec_training_accuracy}
         scheduler_execution_result = mec_result
-    elif scheduler_name == "MEC_With_Accuracy":
-        # Run the MEC_With_Accuracy algorithm.
+    elif scheduler_name == "MEC+Acc":
+        # Run the MEC+Acc algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
-        # Execute the first step of MEC_With_Accuracy to obtain the optimal makespan value.
-        mec_with_accuracy_makespan \
-            = min_max_time(num_resources,
+        (mec_plus_acc_assignment, mec_plus_acc_makespan, mec_plus_acc_energy_consumption,
+         mec_plus_acc_training_accuracy) \
+            = mec_plus_acc(num_resources,
                            num_tasks,
                            assignment_capacities,
-                           time_costs)
-        # Relax the optimal makespan value according to the current relaxation percentage.
-        mec_with_accuracy_makespan_relaxed = mec_with_accuracy_makespan * (1 + makespan_relaxation_percentage)
-        # mec_with_accuracy_makespan_relaxed = time_limit * (1 + makespan_relaxation_percentage)
-        # Employ the relaxed makespan as the time limit and execute the second step of MEC_With_Accuracy.
-        mec_with_accuracy_assignment, mec_with_accuracy_energy_consumption, mec_with_accuracy_training_accuracy \
-            = min_sum_energy_then_max_sum_accuracy(num_resources,
-                                                   num_tasks,
-                                                   assignment_capacities,
-                                                   time_costs,
-                                                   energy_costs,
-                                                   training_accuracies,
-                                                   mec_with_accuracy_makespan_relaxed)
-        mec_with_accuracy_num_selected_resources = get_num_selected_resources(mec_with_accuracy_assignment)
-        # mec_with_accuracy_makespan = get_makespan(time_costs, mec_with_accuracy_assignment)
-        # mec_with_accuracy_energy_consumption = get_total_cost(energy_costs, mec_with_accuracy_assignment)
-        # mec_with_accuracy_training_accuracy = get_total_cost(training_accuracies,
-        #                                                      mec_with_accuracy_assignment)
-        mec_with_accuracy_result = {"scheduler_name": scheduler_name,
-                                    "num_tasks": num_tasks,
-                                    "num_resources": num_resources,
-                                    "time_limit": time_limit,
-                                    "makespan_relaxation_percentage": makespan_relaxation_percentage,
-                                    "assignment": mec_with_accuracy_assignment,
-                                    "num_selected_resources": mec_with_accuracy_num_selected_resources,
-                                    "makespan": mec_with_accuracy_makespan_relaxed,
-                                    "energy_consumption": mec_with_accuracy_energy_consumption,
-                                    "training_accuracy": mec_with_accuracy_training_accuracy}
-        scheduler_execution_result = mec_with_accuracy_result
+                           time_costs,
+                           energy_costs,
+                           training_accuracies)
+        mec_plus_acc_num_selected_resources = get_num_selected_resources(mec_plus_acc_assignment)
+        # mec_plus_acc_makespan = get_makespan(time_costs, mec_plus_acc_assignment)
+        # mec_plus_acc_energy_consumption = get_total_cost(energy_costs, mec_plus_acc_assignment)
+        # mec_plus_acc_training_accuracy = get_total_cost(training_accuracies,
+        #                                                 mec_plus_acc_assignment)
+        mec_plus_acc_result = {"scheduler_name": scheduler_name,
+                               "num_tasks": num_tasks,
+                               "num_resources": num_resources,
+                               "assignment": mec_plus_acc_assignment,
+                               "num_selected_resources": mec_plus_acc_num_selected_resources,
+                               "makespan": mec_plus_acc_makespan,
+                               "energy_consumption": mec_plus_acc_energy_consumption,
+                               "training_accuracy": mec_plus_acc_training_accuracy}
+        scheduler_execution_result = mec_plus_acc_result
     elif scheduler_name == "ECMTC":
         # Run the ECMTC algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
-        # Execute ECMTC for the first time to obtain the optimal makespan value.
-        _, _, ecmtc_makespan \
+        time_limit = inf  # Time limit in seconds (deadline).
+        ecmtc_assignment, ecmtc_energy_consumption, ecmtc_makespan \
             = ecmtc(num_resources,
                     num_tasks,
                     assignment_capacities,
                     time_costs,
                     energy_costs,
                     time_limit)
-        # Relax the optimal makespan value according to the current relaxation percentage.
-        ecmtc_makespan_relaxed = ecmtc_makespan * (1 + makespan_relaxation_percentage)
-        # Employ the relaxed makespan as the time limit and execute ECMTC again.
-        ecmtc_assignment, ecmtc_energy_consumption, _ \
-            = ecmtc(num_resources,
-                    num_tasks,
-                    assignment_capacities,
-                    time_costs,
-                    energy_costs,
-                    ecmtc_makespan_relaxed)
         ecmtc_num_selected_resources = get_num_selected_resources(ecmtc_assignment)
         # ecmtc_makespan = get_makespan(time_costs, ecmtc_assignment)
         # ecmtc_energy_consumption = get_total_cost(energy_costs, ecmtc_assignment)
@@ -274,54 +228,39 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         ecmtc_result = {"scheduler_name": scheduler_name,
                         "num_tasks": num_tasks,
                         "num_resources": num_resources,
-                        "time_limit": time_limit,
-                        "makespan_relaxation_percentage": makespan_relaxation_percentage,
                         "assignment": ecmtc_assignment,
                         "num_selected_resources": ecmtc_num_selected_resources,
-                        "makespan": ecmtc_makespan_relaxed,
+                        "makespan": ecmtc_makespan,
                         "energy_consumption": ecmtc_energy_consumption,
                         "training_accuracy": ecmtc_training_accuracy}
         scheduler_execution_result = ecmtc_result
-    elif scheduler_name == "ECMTC_With_Accuracy":
-        # Run the ECMTC_With_Accuracy algorithm.
+    elif scheduler_name == "ECMTC+Acc":
+        # Run the ECMTC+Acc algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
-        # Execute ECMTC_With_Accuracy for the first time to obtain the optimal makespan value.
-        _, _, ecmtc_with_accuracy_makespan, _ \
-            = ecmtc_with_accuracy(num_resources,
-                                  num_tasks,
-                                  assignment_capacities,
-                                  time_costs,
-                                  energy_costs,
-                                  training_accuracies,
-                                  time_limit)
-        # Relax the optimal makespan value according to the current relaxation percentage.
-        ecmtc_with_accuracy_makespan_relaxed = ecmtc_with_accuracy_makespan * (1 + makespan_relaxation_percentage)
-        # Employ the relaxed makespan as the time limit and execute ECMTC_With_Accuracy again.
-        (ecmtc_with_accuracy_assignment, ecmtc_with_accuracy_energy_consumption, _,
-         ecmtc_with_accuracy_training_accuracy) \
-            = ecmtc_with_accuracy(num_resources,
-                                  num_tasks,
-                                  assignment_capacities,
-                                  time_costs,
-                                  energy_costs,
-                                  training_accuracies,
-                                  ecmtc_with_accuracy_makespan_relaxed)
-        ecmtc_with_accuracy_num_selected_resources = get_num_selected_resources(ecmtc_with_accuracy_assignment)
-        # ecmtc_with_accuracy_makespan = get_makespan(time_costs, ecmtc_with_accuracy_assignment)
-        # ecmtc_with_accuracy_energy_consumption = get_total_cost(energy_costs, ecmtc_with_accuracy_assignment)
-        # ecmtc_with_accuracy_training_accuracy = get_total_cost(training_accuracies,
-        #                                                        ecmtc_with_accuracy_assignment)
-        ecmtc_with_accuracy_result = {"scheduler_name": scheduler_name,
-                                      "num_tasks": num_tasks,
-                                      "num_resources": num_resources,
-                                      "time_limit": time_limit,
-                                      "makespan_relaxation_percentage": makespan_relaxation_percentage,
-                                      "assignment": ecmtc_with_accuracy_assignment,
-                                      "num_selected_resources": ecmtc_with_accuracy_num_selected_resources,
-                                      "makespan": ecmtc_with_accuracy_makespan_relaxed,
-                                      "energy_consumption": ecmtc_with_accuracy_energy_consumption,
-                                      "training_accuracy": ecmtc_with_accuracy_training_accuracy}
-        scheduler_execution_result = ecmtc_with_accuracy_result
+        time_limit = inf  # Time limit in seconds (deadline).
+        (ecmtc_plus_acc_assignment, ecmtc_plus_acc_energy_consumption, ecmtc_plus_acc_makespan,
+         ecmtc_plus_acc_training_accuracy) \
+            = ecmtc_plus_acc(num_resources,
+                             num_tasks,
+                             assignment_capacities,
+                             time_costs,
+                             energy_costs,
+                             training_accuracies,
+                             time_limit)
+        ecmtc_plus_acc_num_selected_resources = get_num_selected_resources(ecmtc_plus_acc_assignment)
+        # ecmtc_plus_acc_makespan = get_makespan(time_costs, ecmtc_plus_acc_assignment)
+        # ecmtc_plus_acc_energy_consumption = get_total_cost(energy_costs, ecmtc_plus_acc_assignment)
+        # ecmtc_plus_acc_training_accuracy = get_total_cost(training_accuracies,
+        #                                                   ecmtc_plus_acc_assignment)
+        ecmtc_plus_acc_result = {"scheduler_name": scheduler_name,
+                                 "num_tasks": num_tasks,
+                                 "num_resources": num_resources,
+                                 "assignment": ecmtc_plus_acc_assignment,
+                                 "num_selected_resources": ecmtc_plus_acc_num_selected_resources,
+                                 "makespan": ecmtc_plus_acc_makespan,
+                                 "energy_consumption": ecmtc_plus_acc_energy_consumption,
+                                 "training_accuracy": ecmtc_plus_acc_training_accuracy}
+        scheduler_execution_result = ecmtc_plus_acc_result
     return scheduler_execution_result
 
 
@@ -341,8 +280,6 @@ def check_and_store(scheduler_result: dict,
     scheduler_name = scheduler_result["scheduler_name"]
     num_tasks = scheduler_result["num_tasks"]
     num_resources = scheduler_result["num_resources"]
-    time_limit = scheduler_result["time_limit"]
-    makespan_relaxation_percentage = scheduler_result["makespan_relaxation_percentage"]
     assignment = scheduler_result["assignment"]
     num_selected_resources = scheduler_result["num_selected_resources"]
     makespan = scheduler_result["makespan"]
@@ -354,9 +291,9 @@ def check_and_store(scheduler_result: dict,
                                      .format(scheduler_name, num_tasks, num_resources, sum(assignment)))
         print(failed_assignment_message)
     # Store the experiment result.
-    experiment_result = ("{0},{1},{2},{3},{4},{5},{6},{7},{8}"
-                         .format(scheduler_name, num_tasks, num_resources, time_limit, makespan_relaxation_percentage,
-                                 num_selected_resources, makespan, energy_consumption, training_accuracy))
+    experiment_result = ("{0},{1},{2},{3},{4},{5},{6}"
+                         .format(scheduler_name, num_tasks, num_resources, num_selected_resources,
+                                 makespan, energy_consumption, training_accuracy))
     logger.store(experiment_result)
 
 
@@ -411,12 +348,8 @@ def run_for_n_resources(num_resources: int,
     min_tasks = execution_parameters["min_tasks"]
     max_tasks = execution_parameters["max_tasks"]
     step_tasks = execution_parameters["step_tasks"]
-    time_limit = execution_parameters["time_limit"]
-    makespan_relaxation_percentages = execution_parameters["makespan_relaxation_percentages"]
-    rng_seed_resources = execution_parameters["rng_seed_resources"]
+    rng_resources_seed = execution_parameters["rng_resources_seed"]
     cost_function_verbose = execution_parameters["cost_function_verbose"]
-    low_random = execution_parameters["low_random"]
-    high_random = execution_parameters["high_random"]
     # Multiprocessing status message.
     print("\n{0}: Multiprocessing is {1}!".format(datetime.now(),
                                                   "enabled" if use_multiprocessing else "disabled"))
@@ -427,103 +360,110 @@ def run_for_n_resources(num_resources: int,
     time_costs = zeros(shape=(num_resources, max_tasks+1))
     energy_costs = zeros(shape=(num_resources, max_tasks+1))
     training_accuracies = zeros(shape=(num_resources, max_tasks+1))
-    # Fill the cost matrices with costs based on a linear function.
-    base_seed = rng_seed_resources
+    # Fill the cost matrices with costs based on a random function.
+    rng_resources_base_seed = rng_resources_seed
     for resource_index in range(num_resources):
         # Fill the time_costs matrix.
-        create_linear_costs(base_seed, time_costs, resource_index, max_tasks,
-                            cost_function_verbose, low_random, high_random)
+        create_random_costs(rng_resources_base_seed,
+                            time_costs,
+                            resource_index,
+                            max_tasks,
+                            cost_function_verbose)
         # Fill the energy_costs matrix.
-        create_linear_costs(base_seed, energy_costs, resource_index, max_tasks,
-                            cost_function_verbose, (0.32 * low_random), (0.32 * high_random))
+        create_random_costs(rng_resources_base_seed,
+                            energy_costs,
+                            resource_index,
+                            max_tasks,
+                            cost_function_verbose)
         # Fill the training_accuracies matrix.
-        create_linear_costs(base_seed, training_accuracies, resource_index, max_tasks,
-                            cost_function_verbose, (0.00002 * low_random), (0.00002 * high_random))
-        base_seed += 1
+        create_random_costs(rng_resources_base_seed,
+                            training_accuracies,
+                            resource_index,
+                            max_tasks,
+                            cost_function_verbose)
+        # Normalize the training_accuracies matrix (to avoid sum of training accuracies higher than 1.0).
+        training_accuracies = ((training_accuracies - training_accuracies.min()) /
+                               (training_accuracies.max() - training_accuracies.min()))
+        # Increment the base seed for resources.
+        rng_resources_base_seed += 1
     # Iterate over the number of tasks to assign.
     for num_tasks in range(min_tasks, max_tasks+1, step_tasks):
-        # Iterate over the makespan relaxation percentages.
-        for makespan_relaxation_percentage in makespan_relaxation_percentages:
-            # Number of tasks to schedule message.
-            print("\n{0}: Scheduling {1} tasks:".format(datetime.now(), num_tasks))
-            # Set the lower and upper assignment limits arrays.
-            lower_assignment_limits = zeros(shape=num_resources, dtype=int)
-            upper_assignment_limits = full(shape=num_resources, fill_value=num_tasks, dtype=int)
-            # Set the assignment capacities matrix.
-            assignment_capacities = []
-            for resource_index in range(num_resources):
-                assignment_capacities_i = list(range(lower_assignment_limits[resource_index],
-                                                     upper_assignment_limits[resource_index]))
-                assignment_capacities.append(assignment_capacities_i)
-            assignment_capacities = array(assignment_capacities)
-            # Whether to use multiprocessing or not.
-            if use_multiprocessing:
-                # Load the multiprocessing elements (queue, pool).
-                # Set the queue.
-                queue = Manager().Queue()
-                # Set the pool.
-                pool = Pool(num_queue_consumers + num_queue_producers)
-                # Start the queue consumers.
-                all_queue_items = []
-                for _ in range(num_queue_consumers):
-                    queue_items = pool.apply_async(queue_consumer, (queue,))
-                    all_queue_items.append(queue_items)
-                async_results = []
-                # Iterate over the schedulers that will assign the tasks.
-                for index, scheduler_name in enumerate(schedulers_names):
-                    # Set the scheduler's execution parameters.
-                    scheduler_execution_parameters = {"index": index,
-                                                      "scheduler_name": scheduler_name,
-                                                      "num_tasks": num_tasks,
-                                                      "num_resources": num_resources,
-                                                      "time_costs": time_costs,
-                                                      "energy_costs": energy_costs,
-                                                      "training_accuracies": training_accuracies,
-                                                      "assignment_capacities": assignment_capacities,
-                                                      "time_limit": time_limit,
-                                                      "makespan_relaxation_percentage": makespan_relaxation_percentage}
-                    # Launch asynchronous tasks for the queue producers.
-                    async_result = pool.apply_async(queue_producer, (scheduler_execution_parameters, queue))
-                    async_results.append(async_result)
-                # Collect results from the producers through the pool result queue.
-                for async_result in async_results:
-                    async_result.get()
-                # Send the 'finish_consumer' messages to the queue.
-                for _ in range(num_queue_consumers):
-                    send_finish_consumer_message_to_queue(queue)
-                # Get the producers' results stored by the consumers.
-                for queue_item in all_queue_items:
-                    producer_results = queue_item.get()
-                    for producer_result in producer_results:
-                        # Check and store the scheduler's execution result.
-                        check_and_store(producer_result, logger)
-                # Close the pool.
-                close_pool(pool)
-            else:
-                # Iterate over the schedulers that will assign the tasks.
-                for index, scheduler_name in enumerate(schedulers_names):
-                    # Set the scheduler's execution parameters.
-                    scheduler_execution_parameters = {"index": index,
-                                                      "scheduler_name": scheduler_name,
-                                                      "num_tasks": num_tasks,
-                                                      "num_resources": num_resources,
-                                                      "time_costs": time_costs,
-                                                      "energy_costs": energy_costs,
-                                                      "training_accuracies": training_accuracies,
-                                                      "assignment_capacities": assignment_capacities,
-                                                      "time_limit": time_limit,
-                                                      "makespan_relaxation_percentage": makespan_relaxation_percentage}
-                    # Execute the scheduler.
-                    scheduler_execution_result = execute_scheduler(scheduler_execution_parameters)
+        # Number of tasks to schedule message.
+        print("\n{0}: Scheduling {1} tasks:".format(datetime.now(), num_tasks))
+        # Set the lower and upper assignment limits arrays.
+        lower_assignment_limits = zeros(shape=num_resources, dtype=int)
+        upper_assignment_limits = full(shape=num_resources, fill_value=num_tasks, dtype=int)
+        # Set the assignment capacities matrix.
+        assignment_capacities = []
+        for resource_index in range(num_resources):
+            assignment_capacities_i = list(range(lower_assignment_limits[resource_index],
+                                                 upper_assignment_limits[resource_index]))
+            assignment_capacities.append(assignment_capacities_i)
+        assignment_capacities = array(assignment_capacities)
+        # Whether to use multiprocessing or not.
+        if use_multiprocessing:
+            # Load the multiprocessing elements (queue, pool).
+            # Set the queue.
+            queue = Manager().Queue()
+            # Set the pool.
+            pool = Pool(num_queue_consumers + num_queue_producers)
+            # Start the queue consumers.
+            all_queue_items = []
+            for _ in range(num_queue_consumers):
+                queue_items = pool.apply_async(queue_consumer, (queue,))
+                all_queue_items.append(queue_items)
+            async_results = []
+            # Iterate over the schedulers that will assign the tasks.
+            for index, scheduler_name in enumerate(schedulers_names):
+                # Set the scheduler's execution parameters.
+                scheduler_execution_parameters = {"index": index,
+                                                  "scheduler_name": scheduler_name,
+                                                  "num_tasks": num_tasks,
+                                                  "num_resources": num_resources,
+                                                  "time_costs": time_costs,
+                                                  "energy_costs": energy_costs,
+                                                  "training_accuracies": training_accuracies,
+                                                  "assignment_capacities": assignment_capacities}
+                # Launch asynchronous tasks for the queue producers.
+                async_result = pool.apply_async(queue_producer, (scheduler_execution_parameters, queue))
+                async_results.append(async_result)
+            # Collect results from the producers through the pool result queue.
+            for async_result in async_results:
+                async_result.get()
+            # Send the 'finish_consumer' messages to the queue.
+            for _ in range(num_queue_consumers):
+                send_finish_consumer_message_to_queue(queue)
+            # Get the producers' results stored by the consumers.
+            for queue_item in all_queue_items:
+                producer_results = queue_item.get()
+                for producer_result in producer_results:
                     # Check and store the scheduler's execution result.
-                    check_and_store(scheduler_execution_result, logger)
+                    check_and_store(producer_result, logger)
+            # Close the pool.
+            close_pool(pool)
+        else:
+            # Iterate over the schedulers that will assign the tasks.
+            for index, scheduler_name in enumerate(schedulers_names):
+                # Set the scheduler's execution parameters.
+                scheduler_execution_parameters = {"index": index,
+                                                  "scheduler_name": scheduler_name,
+                                                  "num_tasks": num_tasks,
+                                                  "num_resources": num_resources,
+                                                  "time_costs": time_costs,
+                                                  "energy_costs": energy_costs,
+                                                  "training_accuracies": training_accuracies,
+                                                  "assignment_capacities": assignment_capacities}
+                # Execute the scheduler.
+                scheduler_execution_result = execute_scheduler(scheduler_execution_parameters)
+                # Check and store the scheduler's execution result.
+                check_and_store(scheduler_execution_result, logger)
 
 
 def run_experiment() -> None:
     # Start the performance counter.
     perf_counter_start = perf_counter()
     # Set the experiment name.
-    experiment_name = "linear_costs_with_relaxed_makespan"
+    experiment_name = "random_costs"
     # Start message.
     print("{0}: Starting the '{1}' experiment...".format(datetime.now(), experiment_name))
     # Set the output CSV file to store the results.
@@ -539,27 +479,26 @@ def run_experiment() -> None:
     experiments_description = __doc__
     logger.header(experiments_description)
     # Store the header of the output CSV file.
-    experiments_csv_file_header = ("{0},{1},{2},{3},{4},{5},{6},{7},{8}"
-                                   .format("Scheduler_Name", "Num_Tasks", "Num_Resources", "Time_Limit",
-                                           "Makespan_Relaxation_Percentage", "Num_Selected_Resources", "Makespan",
-                                           "Energy_Consumption", "Training_Accuracy"))
+    experiments_csv_file_header = ("{0},{1},{2},{3},{4},{5},{6}"
+                                   .format("Scheduler_Name", "Num_Tasks", "Num_Resources",
+                                           "Num_Selected_Resources", "Makespan", "Energy_Consumption",
+                                           "Training_Accuracy"))
     logger.store(experiments_csv_file_header)
     # Set the execution parameters.
     num_resources = [10, 100]
-    scheduler_names = ["MEC", "MEC_With_Accuracy", "ECMTC", "ECMTC_With_Accuracy"]
+    scheduler_names = ["OLAR", "MC²MKP", "ELASTIC", "FedAECS",
+                       "MEC", "MEC+Acc", "ECMTC", "ECMTC+Acc"]
+    num_queue_consumers = 1
+    num_queue_producers = min(len(scheduler_names), cpu_count() - num_queue_consumers)
     execution_parameters = {"experiment_name": experiment_name,
                             "use_multiprocessing": True,
-                            "num_queue_consumers": 1,
-                            "num_queue_producers": 8,
+                            "num_queue_consumers": num_queue_consumers,
+                            "num_queue_producers": num_queue_producers,
                             "min_tasks": 1000,
                             "max_tasks": 5000,
                             "step_tasks": 100,
-                            "time_limit": 8000,
-                            "makespan_relaxation_percentages": [0, 0.25, 0.50],
-                            "rng_seed_resources": 100,
-                            "cost_function_verbose": False,
-                            "low_random": 1,
-                            "high_random": 10}
+                            "rng_resources_seed": 100,
+                            "cost_function_verbose": False}
     # Run the experiments.
     for n_resources in num_resources:
         run_for_n_resources(n_resources,

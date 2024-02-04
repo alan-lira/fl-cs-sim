@@ -39,8 +39,8 @@ def create_logn_costs(rng_seed: int,
     # Generates alpha, beta and gamma
     alpha, beta = uniform(low_random, high_random, 2)
     if verbose:
-        print(f'[{index}] - Creating quadratic costs with f(x) =' +
-              f' {alpha} + {beta}*log(x)' +
-              f'. RNG seed = {rng_seed}')
+        print("[Index: {0} | Seed: {1} | α: {2} | β: {3}] - "
+              "Creating logn costs with f(x) = {2} + {3} * log(x + 1), for x in [0, {4}]."
+              .format(index, rng_seed, alpha, beta, tau + 1))
     # Fills row in the matrix
-    matrix[index][:] = [(alpha + (beta * log(x+1))) for x in range(tau+1)]
+    matrix[index][:] = [(alpha + (beta * log(x + 1))) for x in range(tau + 1)]
