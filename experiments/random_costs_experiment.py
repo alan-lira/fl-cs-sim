@@ -383,7 +383,7 @@ def run_for_n_resources(num_resources: int,
                             cost_function_verbose)
         # Normalize the training_accuracies matrix (to avoid sum of training accuracies higher than 1.0).
         training_accuracies = ((training_accuracies - training_accuracies.min()) /
-                               (training_accuracies - training_accuracies.min()).sum())
+                               (training_accuracies.max() - training_accuracies.min()))
         # Increment the base seed for resources.
         rng_resources_base_seed += 1
     # Iterate over the number of tasks to assign.

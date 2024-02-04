@@ -51,11 +51,11 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                           hue_order=scheduler_names,
                           style="Scheduler_Name",
                           dashes=False,
-                          markers=False,
+                          markers=True,
                           alpha=alpha,
                           size="Scheduler_Name",
                           sizes=line_sizes,
-                          markersize=8)
+                          markersize=6)
             move_legend(ax,
                         "lower center",
                         bbox_to_anchor=(.5, 1),

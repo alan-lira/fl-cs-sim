@@ -128,9 +128,9 @@ def check_and_store(scheduler_result: dict,
                                      .format(scheduler_name, num_tasks, num_resources, sum(assignment)))
         print(failed_assignment_message)
     # Store the experiment result.
-    experiment_result = ("{0},{1},{2},{3},{4},{5},{6},{7},{8}"
-                         .format(scheduler_name, num_tasks, num_resources, num_selected_resources, time_limit,
-                                 makespan_relaxation_percentage, makespan, energy_consumption, training_accuracy))
+    experiment_result = ("{0},{1},{2},{3},{4},{5},{6}"
+                         .format(scheduler_name, num_tasks, num_resources, time_limit,
+                                 makespan_relaxation_percentage, makespan, energy_consumption))
     logger.store(experiment_result)
 
 
@@ -233,7 +233,7 @@ def run_for_n_resources(num_resources: int,
                             high_random_training_accuracy)
         # Normalize the training_accuracies matrix (to avoid sum of training accuracies higher than 1.0).
         training_accuracies = ((training_accuracies - training_accuracies.min()) /
-                               (training_accuracies - training_accuracies.min()).sum())
+                               (training_accuracies.max() - training_accuracies.min()))
         # Increment the base seed for resources.
         rng_resources_base_seed += 1
     # Iterate over the number of tasks to assign.
@@ -391,10 +391,9 @@ def run_experiment() -> None:
     experiments_description = __doc__
     logger.header(experiments_description)
     # Store the header of the output CSV file.
-    experiments_csv_file_header = ("{0},{1},{2},{3},{4},{5},{6},{7},{8}"
-                                   .format("Scheduler_Name", "Num_Tasks", "Num_Resources", "Num_Selected_Resources",
-                                           "Time_Limit", "Makespan_Relaxation_Percentage", "Makespan",
-                                           "Energy_Consumption", "Training_Accuracy"))
+    experiments_csv_file_header = ("{0},{1},{2},{3},{4},{5},{6}"
+                                   .format("Scheduler_Name", "Num_Tasks", "Num_Resources", "Time_Limit",
+                                           "Makespan_Relaxation_Percentage", "Makespan", "Energy_Consumption"))
     logger.store(experiments_csv_file_header)
     # Set the execution parameters.
     num_resources = [10, 100]

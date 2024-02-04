@@ -363,7 +363,7 @@ def run_for_fixed_resources(schedulers_names: list,
                                         high_random_training_accuracy)
                     # Normalize the training_accuracies matrix (to avoid sum of training accuracies higher than 1.0).
                     training_accuracies = ((training_accuracies - training_accuracies.min()) /
-                                           (training_accuracies - training_accuracies.min()).sum())
+                                           (training_accuracies.max() - training_accuracies.min()))
                     # Increment the base seed for resources.
                     rng_resources_base_seed += 1
                 # Set the scheduler's execution parameters.

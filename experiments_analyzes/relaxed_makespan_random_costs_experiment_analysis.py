@@ -58,7 +58,7 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                           alpha=alpha,
                           size="Scheduler_Name",
                           sizes=line_sizes,
-                          markersize=4)
+                          markersize=6)
             move_legend(ax,
                         "lower center",
                         bbox_to_anchor=(.5, 1),
