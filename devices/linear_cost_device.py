@@ -41,6 +41,6 @@ def create_linear_costs(rng_seed: int,
     if verbose:
         print("[Index: {0} | Seed: {1} | α: {2} | β: {3}] - "
               "Creating linear costs with f(x) = {2} + {3} * x, for x in [0, {4}]."
-              .format(index, rng_seed, alpha, beta, tau + 1))
+              .format(index, rng_seed, alpha, beta, tau))
     # Fills row in the matrix
     matrix[index][:] = [(alpha + (beta * x)) for x in range(tau + 1)]

@@ -12,8 +12,8 @@ filterwarnings("ignore")
 
 def generate_experiments_results_figures(execution_parameters: dict) -> None:
     experiment_name = execution_parameters["experiment_name"]
-    experiments_analysis_results_folder = execution_parameters["experiments_analysis_results_folder"]
-    experiments_results_df = execution_parameters["experiments_results_df"]
+    experiment_analysis_results_folder = execution_parameters["experiment_analysis_results_folder"]
+    experiment_results_df = execution_parameters["experiment_results_df"]
     num_resources = execution_parameters["num_resources"]
     scheduler_names = execution_parameters["scheduler_names"]
     metrics_names = execution_parameters["metrics_names"]
@@ -29,7 +29,7 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
     set_palette(colors, len(scheduler_names))
     # Generate a figure for each (num_resources, metric_name) tuple.
     for n_resources in num_resources:
-        data = experiments_results_df[experiments_results_df.Num_Resources == n_resources]
+        data = experiment_results_df[experiment_results_df["Num_Resources"] == n_resources]
         for metric_name in metrics_names:
             if metric_name == "Num_Selected_Resources":
                 y_label = metric_name.replace("_", " ").replace("Num", "Number of").capitalize()
@@ -63,31 +63,32 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                         title=None,
                         frameon=True)
             output_figure_file = Path("fig_{0}_{1}_resources_{2}.pdf".format(experiment_name, n_resources, metric_name.lower()))
-            output_figure_file_full_path = experiments_analysis_results_folder.joinpath(output_figure_file)
+            output_figure_file_full_path = experiment_analysis_results_folder.joinpath(output_figure_file)
             savefig(output_figure_file_full_path, bbox_inches="tight")
             print("Figure '{0}' was successfully generated.".format(output_figure_file_full_path))
 
 
 def compare_schedulers_metrics_performance(execution_parameters: dict) -> None:
-    experiments_results_df = execution_parameters["experiments_results_df"]
+    experiment_results_df = execution_parameters["experiment_results_df"]
     scheduler_names = execution_parameters["scheduler_names"]
     metrics_names = execution_parameters["metrics_names"]
-    target_scheduler = execution_parameters["target_scheduler"]
-    print("\nSchedulers metrics performance comparison:\n")
-    for metric_name in metrics_names:
-        target_scheduler_cost = experiments_results_df[experiments_results_df["Scheduler_Name"] ==
-                                                       target_scheduler][metric_name].reset_index(drop=True)
-        for scheduler in scheduler_names:
-            if scheduler != target_scheduler:
-                other_cost = experiments_results_df[experiments_results_df["Scheduler_Name"] ==
-                                                    scheduler][metric_name].reset_index(drop=True)
-                greater = sum(other_cost > target_scheduler_cost)
-                equal = sum(other_cost == target_scheduler_cost)
-                less = sum(other_cost < target_scheduler_cost)
-                comparison_message = ("- Number of times '{0}' provided a '{1}' value that is "
-                                      "greater, equal, or smaller than '{2}': {3}, {4}, and {5}, respectively."
-                                      .format(scheduler, metric_name, target_scheduler, greater, equal, less))
-                print(comparison_message)
+    target_schedulers = execution_parameters["target_schedulers"]
+    for target_scheduler in target_schedulers:
+        print("\nSchedulers metrics performance comparison (target scheduler: '{0}'):\n".format(target_scheduler))
+        for metric_name in metrics_names:
+            target_scheduler_cost = experiment_results_df[experiment_results_df["Scheduler_Name"] ==
+                                                          target_scheduler][metric_name].reset_index(drop=True)
+            for scheduler in scheduler_names:
+                if scheduler != target_scheduler:
+                    other_cost = experiment_results_df[experiment_results_df["Scheduler_Name"] ==
+                                                       scheduler][metric_name].reset_index(drop=True)
+                    greater = sum(other_cost > target_scheduler_cost)
+                    equal = sum(other_cost == target_scheduler_cost)
+                    less = sum(other_cost < target_scheduler_cost)
+                    comparison_message = ("- Number of times '{0}' provided a '{1}' value that is "
+                                          "greater, equal, or smaller than '{2}': {3}, {4}, and {5}, respectively."
+                                          .format(scheduler, metric_name, target_scheduler, greater, equal, less))
+                    print(comparison_message)
 
 
 def run_experiment_analysis() -> None:
@@ -97,36 +98,43 @@ def run_experiment_analysis() -> None:
     experiment_name = "random_costs"
     # Start message.
     print("{0}: Starting the '{1}' experiment's analysis...".format(datetime.now(), experiment_name))
-    # Get the experiments results CSV file.
-    experiments_results_csv_file = Path("experiments_results/{0}_experiment_results.csv".format(experiment_name))
+    # Get the experiments results folder.
+    experiments_results_folder = Path("experiments_results")
+    # Get the experiment results CSV file.
+    experiment_results_csv_file \
+        = experiments_results_folder.joinpath("{0}_experiment_results.csv".format(experiment_name))
     # Set the experiments analyzes results folder.
-    experiments_analysis_results_folder = Path("experiments_analyzes_results/{0}".format(experiment_name))
+    experiments_analyzes_results_folder = Path("experiments_analyzes_results")
+    # Set the experiment analysis results folder.
+    experiment_analysis_results_folder = experiments_analyzes_results_folder.joinpath(experiment_name)
     # Remove the output folder and its contents (if exists).
-    if experiments_analysis_results_folder.is_dir():
-        rmtree(experiments_analysis_results_folder)
+    if experiment_analysis_results_folder.is_dir():
+        rmtree(experiment_analysis_results_folder)
     # Create the parents directories of the output file (if not exist yet).
-    experiments_analysis_results_folder.parent.mkdir(exist_ok=True, parents=True)
+    experiment_analysis_results_folder.parent.mkdir(exist_ok=True, parents=True)
     # Create the output folder.
-    experiments_analysis_results_folder.mkdir(exist_ok=True, parents=True)
-    # Load the dataframe from the experiments results CSV file.
-    experiments_results_df = read_csv(experiments_results_csv_file, comment="#")
+    experiment_analysis_results_folder.mkdir(exist_ok=True, parents=True)
+    # Load the dataframe from the experiment results CSV file.
+    experiment_results_df = read_csv(experiment_results_csv_file, comment="#")
+    # Sort the dataframe in ascending order of the schedulers names.
+    experiment_results_df = experiment_results_df.sort_values(by=["Scheduler_Name"], ascending=True)
     # Set the execution parameters.
-    num_resources = list(experiments_results_df["Num_Resources"].sort_values().unique())
-    scheduler_names = list(experiments_results_df["Scheduler_Name"].sort_values().unique())
-    metrics_names = experiments_results_df.columns.drop(["Scheduler_Name", "Num_Tasks", "Num_Resources"]).to_list()
-    target_scheduler = "ECMTC"
+    num_resources = list(experiment_results_df["Num_Resources"].sort_values().unique())
+    scheduler_names = list(experiment_results_df["Scheduler_Name"].sort_values().unique())
+    metrics_names = experiment_results_df.columns.drop(["Scheduler_Name", "Num_Tasks", "Num_Resources"]).to_list()
+    target_schedulers = ["MEC", "ECMTC"]
     x_ticks = [0, 1000, 2000, 3000, 4000, 5000]
     alpha = 0.6
     theme_style = "whitegrid"
-    line_colors = ["#0000FF", "#00FFFF", "#E0115F", "#FFD700", "#00008B", "#228B22", "#7FFFD4", "#008000"]
-    line_sizes = [2, 2, 2, 2, 5, 9, 5, 9]
+    line_colors = ["#00FFFF", "#FFA500", "#E0115F", "#0000FF", "#7FFFD4", "#228B22"]
+    line_sizes = [6, 2, 2, 2, 6, 2]
     execution_parameters = {"experiment_name": experiment_name,
-                            "experiments_analysis_results_folder": experiments_analysis_results_folder,
-                            "experiments_results_df": experiments_results_df,
+                            "experiment_analysis_results_folder": experiment_analysis_results_folder,
+                            "experiment_results_df": experiment_results_df,
                             "num_resources": num_resources,
                             "scheduler_names": scheduler_names,
                             "metrics_names": metrics_names,
-                            "target_scheduler": target_scheduler,
+                            "target_schedulers": target_schedulers,
                             "x_ticks": x_ticks,
                             "alpha": alpha,
                             "theme_style": theme_style,

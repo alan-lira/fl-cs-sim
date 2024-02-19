@@ -12,8 +12,8 @@ filterwarnings("ignore")
 
 def generate_experiments_results_figures(execution_parameters: dict) -> None:
     experiment_name = execution_parameters["experiment_name"]
-    experiments_analysis_results_folder = execution_parameters["experiments_analysis_results_folder"]
-    experiments_results_df = execution_parameters["experiments_results_df"]
+    experiment_analysis_results_folder = execution_parameters["experiment_analysis_results_folder"]
+    experiment_results_df = execution_parameters["experiment_results_df"]
     num_resources = execution_parameters["num_resources"]
     scheduler_names = execution_parameters["scheduler_names"]
     metrics_names = execution_parameters["metrics_names"]
@@ -46,8 +46,8 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
             xticks(ticks=x_ticks, rotation=15)
             ylabel(y_label, fontsize=13)
             base_scheduler_data \
-                = experiments_results_df[(experiments_results_df.Num_Resources == n_resources) &
-                                         (experiments_results_df.Scheduler_Name == target_scheduler)]
+                = experiment_results_df[(experiment_results_df["Num_Resources"] == n_resources) &
+                                        (experiment_results_df["Scheduler_Name"] == target_scheduler)]
             ax = lineplot(data=base_scheduler_data,
                           x="Num_Tasks",
                           y=metric_name,
@@ -67,13 +67,15 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                         frameon=True)
             for makespan_relaxation_percentage in makespan_relaxation_percentages:
                 relaxed_makespan_scheduler_data \
-                    = experiments_results_df[(experiments_results_df.Num_Resources == n_resources) &
-                                             (experiments_results_df.Makespan_Relaxation_Percentage == makespan_relaxation_percentage) &
-                                             experiments_results_df.Makespan_Relaxation_Percentage > 0 &
-                                             (experiments_results_df.Scheduler_Name != target_scheduler)]
+                    = experiment_results_df[(experiment_results_df["Num_Resources"] == n_resources) &
+                                            (experiment_results_df["Makespan_Relaxation_Percentage"] == makespan_relaxation_percentage) &
+                                            (experiment_results_df["Scheduler_Name"] != target_scheduler)]
+                makespan_increase_percentage_value = makespan_relaxation_percentage * 100
+                makespan_increase_percentage_str = " (+{0}%)".format(int(makespan_increase_percentage_value)
+                                                                     if (makespan_increase_percentage_value % 1 == 0)
+                                                                     else makespan_increase_percentage_value)
                 scheduler_name_with_relaxed_makespan \
-                    = (relaxed_makespan_scheduler_data.Scheduler_Name +
-                       " ({0}% relax.)".format(makespan_relaxation_percentage * 100))
+                    = relaxed_makespan_scheduler_data.Scheduler_Name + makespan_increase_percentage_str
                 relaxed_makespan_scheduler_data.Scheduler_Name = scheduler_name_with_relaxed_makespan
                 ax = lineplot(data=relaxed_makespan_scheduler_data,
                               x="Num_Tasks",
@@ -96,31 +98,39 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                                       .format(experiment_name,
                                               n_resources,
                                               metric_name.lower()))
-            output_figure_file_full_path = experiments_analysis_results_folder.joinpath(output_figure_file)
+            output_figure_file_full_path = experiment_analysis_results_folder.joinpath(output_figure_file)
             savefig(output_figure_file_full_path, bbox_inches="tight")
             print("Figure '{0}' was successfully generated.".format(output_figure_file_full_path))
 
 
 def compare_schedulers_metrics_performance(execution_parameters: dict) -> None:
-    experiments_results_df = execution_parameters["experiments_results_df"]
+    experiment_results_df = execution_parameters["experiment_results_df"]
     scheduler_names = execution_parameters["scheduler_names"]
     metrics_names = execution_parameters["metrics_names"]
+    makespan_relaxation_percentages = execution_parameters["makespan_relaxation_percentages"]
     target_scheduler = execution_parameters["target_scheduler"]
-    print("\nSchedulers metrics performance comparison:\n")
+    print("\nSchedulers metrics performance comparison (target scheduler: '{0}'):\n".format(target_scheduler))
     for metric_name in metrics_names:
-        target_scheduler_cost = experiments_results_df[experiments_results_df["Scheduler_Name"] ==
-                                                       target_scheduler][metric_name].reset_index(drop=True)
-        for scheduler in scheduler_names:
-            if scheduler != target_scheduler:
-                other_cost = experiments_results_df[experiments_results_df["Scheduler_Name"] ==
-                                                    scheduler][metric_name].reset_index(drop=True)
-                greater = sum(other_cost > target_scheduler_cost)
-                equal = sum(other_cost == target_scheduler_cost)
-                less = sum(other_cost < target_scheduler_cost)
-                comparison_message = ("- Number of times '{0}' provided a '{1}' value that is "
-                                      "greater, equal, or smaller than '{2}': {3}, {4}, and {5}, respectively."
-                                      .format(scheduler, metric_name, target_scheduler, greater, equal, less))
-                print(comparison_message)
+        target_scheduler_cost = experiment_results_df[experiment_results_df["Scheduler_Name"] ==
+                                                      target_scheduler][metric_name].reset_index(drop=True)
+        for makespan_relaxation_percentage in makespan_relaxation_percentages:
+            makespan_increase_percentage_value = makespan_relaxation_percentage * 100
+            makespan_increase_percentage_str = " (+{0}%)".format(int(makespan_increase_percentage_value)
+                                                                 if (makespan_increase_percentage_value % 1 == 0)
+                                                                 else makespan_increase_percentage_value)
+            for scheduler in scheduler_names:
+                if scheduler != target_scheduler:
+                    other_cost = experiment_results_df[(experiment_results_df["Scheduler_Name"] == scheduler) &
+                                                       (experiment_results_df["Makespan_Relaxation_Percentage"] == makespan_relaxation_percentage)
+                                                       ][metric_name].reset_index(drop=True)
+                    greater = sum(other_cost > target_scheduler_cost)
+                    equal = sum(other_cost == target_scheduler_cost)
+                    less = sum(other_cost < target_scheduler_cost)
+                    comparison_message = ("- Number of times '{0}' provided a '{1}' value that is "
+                                          "greater, equal, or smaller than '{2}': {3}, {4}, and {5}, respectively."
+                                          .format(scheduler + makespan_increase_percentage_str,
+                                                  metric_name, target_scheduler, greater, equal, less))
+                    print(comparison_message)
 
 
 def run_experiment_analysis() -> None:
@@ -130,25 +140,31 @@ def run_experiment_analysis() -> None:
     experiment_name = "relaxed_makespan_linear_costs"
     # Start message.
     print("{0}: Starting the '{1}' experiment's analysis...".format(datetime.now(), experiment_name))
-    # Get the experiments results CSV file.
-    experiments_results_csv_file = Path("experiments_results/{0}_experiment_results.csv".format(experiment_name))
+    # Get the experiments results folder.
+    experiments_results_folder = Path("experiments_results")
+    # Get the experiment results CSV file.
+    experiment_results_csv_file \
+        = experiments_results_folder.joinpath("{0}_experiment_results.csv".format(experiment_name))
     # Set the experiments analyzes results folder.
-    experiments_analysis_results_folder = Path("experiments_analyzes_results/{0}".format(experiment_name))
+    experiments_analyzes_results_folder = Path("experiments_analyzes_results")
+    # Set the experiment analysis results folder.
+    experiment_analysis_results_folder = experiments_analyzes_results_folder.joinpath(experiment_name)
     # Remove the output folder and its contents (if exists).
-    if experiments_analysis_results_folder.is_dir():
-        rmtree(experiments_analysis_results_folder)
+    if experiment_analysis_results_folder.is_dir():
+        rmtree(experiment_analysis_results_folder)
     # Create the parents directories of the output file (if not exist yet).
-    experiments_analysis_results_folder.parent.mkdir(exist_ok=True, parents=True)
+    experiment_analysis_results_folder.parent.mkdir(exist_ok=True, parents=True)
     # Create the output folder.
-    experiments_analysis_results_folder.mkdir(exist_ok=True, parents=True)
-    # Load the dataframe from the experiments results CSV file.
-    experiments_results_df = read_csv(experiments_results_csv_file, comment="#")
+    experiment_analysis_results_folder.mkdir(exist_ok=True, parents=True)
+    # Load the dataframe from the experiment results CSV file.
+    experiment_results_df = read_csv(experiment_results_csv_file, comment="#")
     # Set the execution parameters.
-    num_resources = list(experiments_results_df["Num_Resources"].sort_values().unique())
-    scheduler_names = list(experiments_results_df["Scheduler_Name"].sort_values().unique())
+    num_resources = list(experiment_results_df["Num_Resources"].sort_values().unique())
+    scheduler_names = list(experiment_results_df["Scheduler_Name"].sort_values().unique())
     metrics_names = ["Makespan", "Energy_Consumption"]
     makespan_relaxation_percentages \
-        = list(experiments_results_df["Makespan_Relaxation_Percentage"].sort_values().unique())
+        = list(experiment_results_df["Makespan_Relaxation_Percentage"].sort_values().unique())
+    makespan_relaxation_percentages.remove(0)
     target_scheduler = "MEC"
     x_ticks = [0, 1000, 2000, 3000, 4000, 5000]
     alpha = 0.6
@@ -156,8 +172,8 @@ def run_experiment_analysis() -> None:
     line_colors = color_palette("Set3", 1000)
     line_sizes = [3, 3, 3, 3, 3, 3, 3, 3]
     execution_parameters = {"experiment_name": experiment_name,
-                            "experiments_analysis_results_folder": experiments_analysis_results_folder,
-                            "experiments_results_df": experiments_results_df,
+                            "experiment_analysis_results_folder": experiment_analysis_results_folder,
+                            "experiment_results_df": experiment_results_df,
                             "num_resources": num_resources,
                             "scheduler_names": scheduler_names,
                             "metrics_names": metrics_names,

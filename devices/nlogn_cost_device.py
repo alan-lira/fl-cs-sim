@@ -41,6 +41,6 @@ def create_nlogn_costs(rng_seed: int,
     if verbose:
         print("[Index: {0} | Seed: {1} | α: {2} | β: {3}] - "
               "Creating nlogn costs with f(x) = {2} + {3} * x * log(x + 1), for x in [0, {4}]."
-              .format(index, rng_seed, alpha, beta, tau + 1))
+              .format(index, rng_seed, alpha, beta, tau))
     # Fills row in the matrix
     matrix[index][:] = [(alpha + (beta * x * log(x + 1))) for x in range(tau + 1)]
