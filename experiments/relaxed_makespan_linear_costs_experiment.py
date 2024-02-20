@@ -116,12 +116,10 @@ def check_and_store(scheduler_result: dict,
     num_tasks = scheduler_result["num_tasks"]
     num_resources = scheduler_result["num_resources"]
     assignment = scheduler_result["assignment"]
-    num_selected_resources = scheduler_result["num_selected_resources"]
     time_limit = scheduler_result["time_limit"]
     makespan_relaxation_percentage = scheduler_result["makespan_relaxation_percentage"]
     makespan = scheduler_result["makespan"]
     energy_consumption = scheduler_result["energy_consumption"]
-    training_accuracy = scheduler_result["training_accuracy"]
     # Check if all tasks were assigned.
     if not check_total_assigned(num_tasks, assignment):
         failed_assignment_message = ("Attention: {0} failed to assign {1} tasks to {2} resources ({3} were assigned)!"

@@ -12,7 +12,7 @@ filterwarnings("ignore")
 
 def generate_experiments_results_figures(execution_parameters: dict) -> None:
     experiment_name = execution_parameters["experiment_name"]
-    experiment_analysis_results_folder = execution_parameters["experiment_analysis_results_folder"]
+    experiment_results_analysis_folder = execution_parameters["experiment_results_analysis_folder"]
     experiment_results_df = execution_parameters["experiment_results_df"]
     num_resources = execution_parameters["num_resources"]
     scheduler_names = execution_parameters["scheduler_names"]
@@ -98,7 +98,7 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
                                       .format(experiment_name,
                                               n_resources,
                                               metric_name.lower()))
-            output_figure_file_full_path = experiment_analysis_results_folder.joinpath(output_figure_file)
+            output_figure_file_full_path = experiment_results_analysis_folder.joinpath(output_figure_file)
             savefig(output_figure_file_full_path, bbox_inches="tight")
             print("Figure '{0}' was successfully generated.".format(output_figure_file_full_path))
 
@@ -137,7 +137,7 @@ def run_experiment_analysis() -> None:
     # Start the performance counter.
     perf_counter_start = perf_counter()
     # Set the experiment name.
-    experiment_name = "relaxed_makespan_linear_costs"
+    experiment_name = "relaxed_makespan_nlogn_costs"
     # Start message.
     print("{0}: Starting the '{1}' experiment's analysis...".format(datetime.now(), experiment_name))
     # Get the experiments results folder.
@@ -145,17 +145,17 @@ def run_experiment_analysis() -> None:
     # Get the experiment results CSV file.
     experiment_results_csv_file \
         = experiments_results_folder.joinpath("{0}_experiment_results.csv".format(experiment_name))
-    # Set the experiments analyzes results folder.
-    experiments_analyzes_results_folder = Path("experiments_analyzes_results")
-    # Set the experiment analysis results folder.
-    experiment_analysis_results_folder = experiments_analyzes_results_folder.joinpath(experiment_name)
+    # Set the experiments results analyzes folder.
+    experiments_results_analyzes_folder = Path("experiments_results_analyzes")
+    # Set the experiment results analysis folder.
+    experiment_results_analysis_folder = experiments_results_analyzes_folder.joinpath(experiment_name)
     # Remove the output folder and its contents (if exists).
-    if experiment_analysis_results_folder.is_dir():
-        rmtree(experiment_analysis_results_folder)
+    if experiment_results_analysis_folder.is_dir():
+        rmtree(experiment_results_analysis_folder)
     # Create the parents directories of the output file (if not exist yet).
-    experiment_analysis_results_folder.parent.mkdir(exist_ok=True, parents=True)
+    experiment_results_analysis_folder.parent.mkdir(exist_ok=True, parents=True)
     # Create the output folder.
-    experiment_analysis_results_folder.mkdir(exist_ok=True, parents=True)
+    experiment_results_analysis_folder.mkdir(exist_ok=True, parents=True)
     # Load the dataframe from the experiment results CSV file.
     experiment_results_df = read_csv(experiment_results_csv_file, comment="#")
     # Set the execution parameters.
@@ -172,7 +172,7 @@ def run_experiment_analysis() -> None:
     line_colors = color_palette("Set3", 1000)
     line_sizes = [3, 3, 3, 3, 3, 3, 3, 3]
     execution_parameters = {"experiment_name": experiment_name,
-                            "experiment_analysis_results_folder": experiment_analysis_results_folder,
+                            "experiment_results_analysis_folder": experiment_results_analysis_folder,
                             "experiment_results_df": experiment_results_df,
                             "num_resources": num_resources,
                             "scheduler_names": scheduler_names,
