@@ -85,7 +85,7 @@ To execute all the experiments results analyses, run the following command:
   bash scripts/run_all_experiments_results_analyses.sh
 ```
 
-The experiments analyses will be stored in the `fl-optimal-schedulers/experiments_results_analyses` folder.
+The experiments results analyses will be stored in the `fl-optimal-schedulers/experiments_results_analyses` folder.
 
 ### Executing All the Steps Above
 
