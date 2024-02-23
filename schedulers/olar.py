@@ -1,6 +1,11 @@
 from heapq import heapify, heappop, heappush
 from numpy import copy, ndarray, sum
 
+"""
+Pilla, L.L.: Optimal Task Assignment for Heterogeneous Federated Learning De-
+vices. In: IEEE Int. Parallel and Dist. Processing Symp. pp. 661–670 (2021)
+"""
+
 
 def olar(tasks: int,
          resources: int,

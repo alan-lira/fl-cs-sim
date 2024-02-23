@@ -11,7 +11,7 @@ bash ./scripts/run_all_schedulers_tests.sh 2>&1 | tee scripts_outputs/run_all_sc
 bash ./scripts/run_all_costs_experiments.sh 2>&1 | tee scripts_outputs/run_all_costs_experiments.out
 # Run all timing experiments.
 bash ./scripts/run_all_timing_experiments.sh 2>&1 | tee scripts_outputs/run_all_timing_experiments.out
-# Run all experiments results' analyzes.
-bash ./scripts/run_all_experiments_results_analyzes.sh 2>&1 | tee scripts_outputs/run_all_experiments_results_analyzes.out
+# Run all experiments results analyses.
+bash ./scripts/run_all_experiments_results_analyses.sh 2>&1 | tee scripts_outputs/run_all_experiments_results_analyses.out
 # Exit.
 exit

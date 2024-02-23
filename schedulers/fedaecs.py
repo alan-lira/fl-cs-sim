@@ -2,6 +2,12 @@ from itertools import combinations
 from math import inf, log, log2, pow
 from numpy import any, argmin, array, ndarray, zeros
 
+"""
+Zheng, J., Li, K., Tovar, E., Guizani, M.: Federated Learning for Energy-balanced
+Client Selection in Mobile Edge Computing. In: International Wireless Communi-
+cations and Mobile Computing. pp. 1942–1947 (2021)
+"""
+
 
 def calculate_E_comp(Uik: float,
                      γk: float,

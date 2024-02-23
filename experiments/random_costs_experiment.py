@@ -18,12 +18,10 @@ from time import perf_counter
 
 from devices.random_cost_device import create_random_costs
 from schedulers.ecmtc import ecmtc
-from schedulers.ecmtc_plus_acc import ecmtc_plus_acc
 from schedulers.elastic_adapted import elastic_adapted_client_selection_algorithm
 from schedulers.fedaecs_adapted import fedaecs_adapted
 from schedulers.mc2mkp_adapted import mc2mkp_adapted
 from schedulers.mec import mec
-from schedulers.mec_plus_acc import mec_plus_acc
 from schedulers.olar_adapted import olar_adapted
 from util.experiment_util import get_num_selected_resources, get_makespan, get_total_cost, check_total_assigned
 from util.logger_util import Logger
@@ -185,31 +183,6 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                       "energy_consumption": mec_energy_consumption,
                       "training_accuracy": mec_training_accuracy}
         scheduler_execution_result = mec_result
-    elif scheduler_name == "MEC+Acc":
-        # Run the MEC+Acc algorithm.
-        print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
-        (mec_plus_acc_assignment, mec_plus_acc_makespan, mec_plus_acc_energy_consumption,
-         mec_plus_acc_training_accuracy) \
-            = mec_plus_acc(num_resources,
-                           num_tasks,
-                           assignment_capacities,
-                           time_costs,
-                           energy_costs,
-                           training_accuracies)
-        mec_plus_acc_num_selected_resources = get_num_selected_resources(mec_plus_acc_assignment)
-        # mec_plus_acc_makespan = get_makespan(time_costs, mec_plus_acc_assignment)
-        # mec_plus_acc_energy_consumption = get_total_cost(energy_costs, mec_plus_acc_assignment)
-        # mec_plus_acc_training_accuracy = get_total_cost(training_accuracies,
-        #                                                 mec_plus_acc_assignment)
-        mec_plus_acc_result = {"scheduler_name": scheduler_name,
-                               "num_tasks": num_tasks,
-                               "num_resources": num_resources,
-                               "assignment": mec_plus_acc_assignment,
-                               "num_selected_resources": mec_plus_acc_num_selected_resources,
-                               "makespan": mec_plus_acc_makespan,
-                               "energy_consumption": mec_plus_acc_energy_consumption,
-                               "training_accuracy": mec_plus_acc_training_accuracy}
-        scheduler_execution_result = mec_plus_acc_result
     elif scheduler_name == "ECMTC":
         # Run the ECMTC algorithm.
         print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
@@ -234,33 +207,6 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
                         "energy_consumption": ecmtc_energy_consumption,
                         "training_accuracy": ecmtc_training_accuracy}
         scheduler_execution_result = ecmtc_result
-    elif scheduler_name == "ECMTC+Acc":
-        # Run the ECMTC+Acc algorithm.
-        print("{0}: {1}. Using {2}...".format(datetime.now(), index, scheduler_name))
-        time_limit = inf  # Time limit in seconds (deadline).
-        (ecmtc_plus_acc_assignment, ecmtc_plus_acc_energy_consumption, ecmtc_plus_acc_makespan,
-         ecmtc_plus_acc_training_accuracy) \
-            = ecmtc_plus_acc(num_resources,
-                             num_tasks,
-                             assignment_capacities,
-                             time_costs,
-                             energy_costs,
-                             training_accuracies,
-                             time_limit)
-        ecmtc_plus_acc_num_selected_resources = get_num_selected_resources(ecmtc_plus_acc_assignment)
-        # ecmtc_plus_acc_makespan = get_makespan(time_costs, ecmtc_plus_acc_assignment)
-        # ecmtc_plus_acc_energy_consumption = get_total_cost(energy_costs, ecmtc_plus_acc_assignment)
-        # ecmtc_plus_acc_training_accuracy = get_total_cost(training_accuracies,
-        #                                                   ecmtc_plus_acc_assignment)
-        ecmtc_plus_acc_result = {"scheduler_name": scheduler_name,
-                                 "num_tasks": num_tasks,
-                                 "num_resources": num_resources,
-                                 "assignment": ecmtc_plus_acc_assignment,
-                                 "num_selected_resources": ecmtc_plus_acc_num_selected_resources,
-                                 "makespan": ecmtc_plus_acc_makespan,
-                                 "energy_consumption": ecmtc_plus_acc_energy_consumption,
-                                 "training_accuracy": ecmtc_plus_acc_training_accuracy}
-        scheduler_execution_result = ecmtc_plus_acc_result
     return scheduler_execution_result
 
 

@@ -6,6 +6,9 @@ def olar_adapted(tasks: int,
                  resources: int,
                  cost: ndarray,
                  assignment_capacities: ndarray) -> ndarray:
+    # Some remarks about this adapted version of OLAR algorithm:
+    # 1. It receives one set of possible task assignments per resource instead of two sets (original algorithm):
+    #    one with lower and one with upper task assignment limits.
     """
     Finds an assignment of tasks to resources using OLAR.
 
