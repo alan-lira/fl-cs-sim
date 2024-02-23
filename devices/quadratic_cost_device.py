@@ -42,6 +42,6 @@ def create_quadratic_costs(rng_seed: int,
     if verbose:
         print("[Index: {0} | Seed: {1} | α: {2} | β: {3} | γ: {4}] - "
               "Creating quadratic costs with f(x) = {2} + ({3} * x) + ({4} * x²), for x in [0, {5}]."
-              .format(index, rng_seed, alpha, beta, gamma, tau + 1))
+              .format(index, rng_seed, alpha, beta, gamma, tau))
     # Fills row in the matrix
     matrix[index][:] = [(alpha + (beta * x) + (gamma * pow(x, 2))) for x in range(tau + 1)]

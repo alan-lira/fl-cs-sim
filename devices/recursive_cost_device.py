@@ -41,6 +41,6 @@ def create_recursive_costs(rng_seed: int,
     if verbose:
         print("[Index: {0} | Seed: {1} | α in [{2}, {3})] - "
               "Creating recursive costs with f(x) = f(x-1) + α, for α in [{2}, {3}) for x in [0, {4}]."
-              .format(index, rng_seed, low_random, high_random, tau + 1))
+              .format(index, rng_seed, low_random, high_random, tau))
     # Fills row in the matrix
     matrix[index][:] = cumsum(values)

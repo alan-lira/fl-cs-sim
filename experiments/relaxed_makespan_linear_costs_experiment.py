@@ -116,12 +116,10 @@ def check_and_store(scheduler_result: dict,
     num_tasks = scheduler_result["num_tasks"]
     num_resources = scheduler_result["num_resources"]
     assignment = scheduler_result["assignment"]
-    num_selected_resources = scheduler_result["num_selected_resources"]
     time_limit = scheduler_result["time_limit"]
     makespan_relaxation_percentage = scheduler_result["makespan_relaxation_percentage"]
     makespan = scheduler_result["makespan"]
     energy_consumption = scheduler_result["energy_consumption"]
-    training_accuracy = scheduler_result["training_accuracy"]
     # Check if all tasks were assigned.
     if not check_total_assigned(num_tasks, assignment):
         failed_assignment_message = ("Attention: {0} failed to assign {1} tasks to {2} resources ({3} were assigned)!"
@@ -378,15 +376,19 @@ def run_experiment() -> None:
     experiment_name = "relaxed_makespan_linear_costs"
     # Start message.
     print("{0}: Starting the '{1}' experiment...".format(datetime.now(), experiment_name))
+    # Set the experiments results folder.
+    experiments_results_folder = Path("experiments_results")
+    # Set the experiment results file.
+    experiment_results_file = Path("{0}_experiment_results.csv".format(experiment_name))
     # Set the output CSV file to store the results.
-    experiments_results_csv_file = Path("experiments_results/{0}_experiment_results.csv".format(experiment_name))
+    experiment_results_csv_file = experiments_results_folder.joinpath(experiment_results_file)
     # Create the parents directories of the output file (if not exist yet).
-    experiments_results_csv_file.parent.mkdir(exist_ok=True, parents=True)
+    experiment_results_csv_file.parent.mkdir(exist_ok=True, parents=True)
     # Remove the output file (if exists).
-    experiments_results_csv_file.unlink(missing_ok=True)
+    experiment_results_csv_file.unlink(missing_ok=True)
     # Set the logger.
     logger_verbosity = False
-    logger = Logger(experiments_results_csv_file, logger_verbosity)
+    logger = Logger(experiment_results_csv_file, logger_verbosity)
     # Store the description of the experiments.
     experiments_description = __doc__
     logger.header(experiments_description)

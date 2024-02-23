@@ -1,6 +1,12 @@
 from math import log2, pow
 from numpy import array, ndarray, ones
 
+"""
+Yu, L., Albelaihi, R., Sun, X., et al.: Jointly Optimizing Client Selection and Re-
+source Management in Wireless Federated Learning for Internet of Things. IEEE
+Internet of Things Journal 9(6), 4385–4395 (2021)
+"""
+
 
 def calculate_t_comp(θ: float,
                      ε: float,

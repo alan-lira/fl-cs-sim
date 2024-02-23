@@ -1,5 +1,10 @@
 from numpy import full, inf, ndarray, zeros
 
+"""
+Pilla, L.L.: Scheduling Algorithms for Federated Learning With Minimal Energy
+Consumption. IEEE Trans. on Par. and Dist. Systems 34(4), 1215–1226 (2023)
+"""
+
 
 def mc2mkp(tasks: int,
            resources: int,
