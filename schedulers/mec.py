@@ -6,7 +6,7 @@ def min_max_time(num_resources: int,
                  assignment_capacities: ndarray,
                  time_costs: ndarray) -> float:
     """
-    First step of MEC: finds the minimal makespan (Cₘₐₓ) to assign tasks to resources.
+    First step of MEC: finds the minimal makespan (C_max) to assign tasks to resources.
     Parameters
     ----------
     num_resources : int
@@ -20,7 +20,7 @@ def min_max_time(num_resources: int,
     Returns
     -------
     minimal_makespan : float
-        Minimal makespan (Cₘₐₓ)
+        Minimal makespan (C_max)
     """
     # (I) Filtering: nothing to do.
     # (II) Initialization: minimal costs and partial solutions matrices.
@@ -43,7 +43,7 @@ def min_max_time(num_resources: int,
                     partial_solutions[i][t] = j
     # (V) Organize the final solution.
     minimal_makespan = float(minimal_time_costs[num_resources-1][num_tasks])
-    # Return the minimal makespan (Cₘₐₓ).
+    # Return the minimal makespan (C_max).
     return minimal_makespan
 
 
@@ -55,7 +55,7 @@ def min_sum_energy(num_resources: int,
                    time_limit: float) -> tuple:
     """
     Second step of MEC: finds the minimal energy consumption (ΣE) to assign tasks to resources,
-    while respecting the time limit (C).
+    while meeting a deadline (D).
     Parameters
     ----------
     num_resources : int
@@ -69,7 +69,7 @@ def min_sum_energy(num_resources: int,
     energy_costs : ndarray(shape=(num_resources, num_tasks+1), object)
         Energy costs to process tasks per resource (ε)
     time_limit : float
-        Time limit (C)
+        Deadline (D)
     Returns
     -------
     optimal_schedule : ndarray(shape=(num_resources), int), minimal_energy_consumption : float
@@ -120,8 +120,8 @@ def mec(num_resources: int,
         time_costs: ndarray,
         energy_costs: ndarray) -> tuple:
     """
-    Minimal Makespan and Energy Consumption FL Schedule problem (MEC): finds an optimal schedule (X*) that minimizes
-    the makespan (Cₘₐₓ) and the total energy consumption (ΣE), in order.
+    Minimal Makespan and Energy Consumption FL Schedule (MEC): finds an optimal schedule (X*) that
+    minimizes the makespan (C_max) and the total energy consumption (ΣE), in that order.
     Parameters
     ----------
     num_resources : int
@@ -137,7 +137,7 @@ def mec(num_resources: int,
     Returns
     -------
     optimal_schedule : ndarray(shape=(num_resources), int), minimal_makespan : float, minimal_energy_consumption : float
-        Optimal schedule (X*), minimal makespan (Cₘₐₓ), and minimal energy consumption (ΣE)
+        Optimal schedule (X*), minimal makespan (C_max), and minimal energy consumption (ΣE)
     """
     # First step: compute the MinMaxTime algorithm (minimal makespan optimization).
     minimal_makespan = min_max_time(num_resources,
@@ -151,5 +151,5 @@ def mec(num_resources: int,
                                                                   time_costs,
                                                                   energy_costs,
                                                                   minimal_makespan)
-    # Return the optimal schedule (X*), the minimal makespan (Cₘₐₓ), and the minimal energy consumption (ΣE).
+    # Return the optimal schedule (X*), the minimal makespan (C_max), and the minimal energy consumption (ΣE).
     return optimal_schedule, minimal_makespan, minimal_energy_consumption
