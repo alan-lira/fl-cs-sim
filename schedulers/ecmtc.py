@@ -8,9 +8,9 @@ def ecmtc(num_resources: int,
           energy_costs: ndarray,
           time_limit: float) -> tuple:
     """
-    Minimal Energy Consumption and Makespan FL Schedule under Time Constraint problem (ECMTC): finds an optimal schedule
-    (X*) that minimizes the total energy consumption (ΣE) and the makespan (Cₘₐₓ), in order, while respecting the time
-    limit (C).
+    Minimal Energy Consumption and Makespan FL Schedule under Time Constraint (ECMTC): finds an optimal schedule (X*)
+    that minimizes the total energy consumption (ΣE) and the makespan (C_max), in that order,
+    while meeting a deadline (D).
     Parameters
     ----------
     num_resources : int
@@ -24,11 +24,11 @@ def ecmtc(num_resources: int,
     energy_costs : ndarray(shape=(num_resources, num_tasks+1), object)
         Energy costs to process tasks per resource (ε)
     time_limit : float
-        Time limit (C)
+        Deadline (D)
     Returns
     -------
     optimal_schedule : ndarray(shape=(num_resources), int), minimal_energy_consumption : float, minimal_makespan : float
-        Optimal schedule (X*), minimal energy consumption (ΣE), and minimal makespan (Cₘₐₓ)
+        Optimal schedule (X*), minimal energy consumption (ΣE), and minimal makespan (C_max)
     """
     # (I) Filtering: only assignments that respect the time limit (C).
     assignment_capacities_filtered = []
@@ -72,5 +72,5 @@ def ecmtc(num_resources: int,
     # (V) Organize the final solution.
     minimal_energy_consumption = minimal_energy_costs[num_resources-1][num_tasks]
     minimal_makespan = minimal_time_costs[num_resources-1][num_tasks]
-    # Return the optimal schedule (X*), the minimal energy consumption (ΣE), and the minimal makespan (Cₘₐₓ).
+    # Return the optimal schedule (X*), the minimal energy consumption (ΣE), and the minimal makespan (C_max).
     return optimal_schedule, minimal_energy_consumption, minimal_makespan
