@@ -100,21 +100,21 @@ class TestFedAECSAdapted(TestCase):
         #     print("Training accuracy: {0}".format(training_accuracy[i]))
 
         # Asserts for the FedAECS algorithm results.
-        expected_beta_star_0 = [0, 1, 1, 0, 1, 0, 0, 0, 0, 1]
+        expected_beta_star_0 = [0, 1, 1, 0, 0, 1, 0, 0, 0, 1]
         self.assertSequenceEqual(expected_beta_star_0, list(beta_star[0]))
-        expected_beta_star_tasks_0 = [0, 4, 4, 0, 1, 0, 0, 0, 0, 1]
+        expected_beta_star_tasks_0 = [0, 2, 3, 0, 0, 4, 0, 0, 0, 1]
         self.assertSequenceEqual(expected_beta_star_tasks_0, list(beta_star_tasks[0]))
-        expected_f_obj_beta_star_0 = 0.041960864552781724
+        expected_f_obj_beta_star_0 = 0.046802240623087195
         self.assertEqual(expected_f_obj_beta_star_0, f_obj_beta_star[0])
-        expected_selected_clients_0 = [1, 2, 4, 9]
+        expected_selected_clients_0 = [1, 2, 5, 9]
         self.assertSequenceEqual(expected_selected_clients_0, selected_clients[0])
         expect_number_selected_clients = 4
         self.assertEqual(expect_number_selected_clients, len(selected_clients[0]))
-        expected_makespan_0 = 0.9788022515907917
+        expected_makespan_0 = 0.6896013440077446
         self.assertEqual(expected_makespan_0, makespan[0])
-        expected_energy_consumption_0 = 0.06795315750344363
+        expected_energy_consumption_0 = 0.0461461021308035
         self.assertEqual(expected_energy_consumption_0, energy_consumption[0])
-        expected_training_accuracy_0 = 0.2467894091590846
+        expected_training_accuracy_0 = 0.31730065672703156
         self.assertEqual(expected_training_accuracy_0, training_accuracy[0])
 
     def test_fedaecs_adapted_on_olar_paper_example(self) -> None:
@@ -123,16 +123,14 @@ class TestFedAECSAdapted(TestCase):
         num_resources = 3
         num_tasks = 6
         # Task assignment capacities per resource.
-        assignment_capacities = array([[[1, 2, 3, 4, 5, 6], [1, 2], [1, 2, 3, 4, 5, 6]]], dtype=object)
-        # The cost arrays doesn't contain the costs of scheduling 0 tasks (FedAECS algorithm can't handle that).
+        assignment_capacities = array([[[0, 1, 2, 3, 4, 5, 6], [0, 1, 2], [0, 1, 2, 3, 4, 5, 6]]], dtype=object)
         # Monotonically increasing time costs.
-        time_costs = array([[[2, 4, 7, 9, 11, 14], [1, 3, 5, 7, 9, 11], [6, 10, 15, 22, 23, 27]]],
+        time_costs = array([[[0.5, 2, 4, 7, 9, 11, 14], [0, 1, 3, 5, 7, 9, 11], [1, 6, 10, 15, 22, 23, 27]]],
                            dtype=object)
         # Energy costs set to zero (OLAR paper's example doesn't consider them).
-        energy_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]], dtype=object)
+        energy_costs = array([[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]], dtype=object)
         # Training accuracies set to zero (OLAR paper's example doesn't consider them).
-        training_accuracies = array([[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]],
-                                    dtype=object)
+        training_accuracies = array([[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]], dtype=object)
 
         # Bandwidth information per resource per round.
         b = []
@@ -190,16 +188,14 @@ class TestFedAECSAdapted(TestCase):
         num_resources = 3
         num_tasks = 5
         # Task assignment capacities per resource.
-        assignment_capacities = array([[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]], dtype=object)
-        # The cost arrays doesn't contain the costs of scheduling 0 tasks (FedAECS algorithm can't handle that).
+        assignment_capacities = array([[[1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]]], dtype=object)
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
-        time_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]],
-                           dtype=object)
+        time_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]], dtype=object)
         # Monotonically increasing energy costs.
-        energy_costs = array([[[2, 3.5, 5.5, 8, 10, 12], [1.5, 2.5, 4, 7, 9, 11], [3, 4, 5, 6, 7, 99]]], dtype=object)
+        energy_costs = array([[[2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7]]],
+                             dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
-        training_accuracies = array([[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]],
-                                    dtype=object)
+        training_accuracies = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]], dtype=object)
 
         # Bandwidth information per resource per round.
         b = []
@@ -257,16 +253,14 @@ class TestFedAECSAdapted(TestCase):
         num_resources = 3
         num_tasks = 8
         # Task assignment capacities per resource.
-        assignment_capacities = array([[[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]], dtype=object)
-        # The cost arrays doesn't contain the costs of scheduling 0 tasks (FedAECS algorithm can't handle that).
+        assignment_capacities = array([[[1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]]], dtype=object)
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
-        time_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]],
-                           dtype=object)
+        time_costs = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]], dtype=object)
         # Monotonically increasing energy costs.
-        energy_costs = array([[[2, 3.5, 5.5, 8, 10, 12], [1.5, 2.5, 4, 7, 9, 11], [3, 4, 5, 6, 7, 99]]], dtype=object)
+        energy_costs = array([[[2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7]]],
+                             dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
-        training_accuracies = array([[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]],
-                                    dtype=object)
+        training_accuracies = array([[[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]], dtype=object)
 
         # Bandwidth information per resource per round.
         b = []
@@ -303,7 +297,7 @@ class TestFedAECSAdapted(TestCase):
         # Asserts for the FedAECS algorithm results.
         expected_beta_star_0 = [1, 1, 1]
         self.assertSequenceEqual(expected_beta_star_0, list(beta_star[0]))
-        expected_beta_star_tasks_0 = [3, 4, 1]
+        expected_beta_star_tasks_0 = [3, 3, 2]
         self.assertSequenceEqual(expected_beta_star_tasks_0, list(beta_star_tasks[0]))
         expected_f_obj_beta_star_0 = inf
         self.assertEqual(expected_f_obj_beta_star_0, f_obj_beta_star[0])
@@ -313,7 +307,7 @@ class TestFedAECSAdapted(TestCase):
         self.assertEqual(expect_number_selected_clients, len(selected_clients[0]))
         expected_makespan_0 = 0.0
         self.assertEqual(expected_makespan_0, makespan[0])
-        expected_energy_consumption_0 = 15.5
+        expected_energy_consumption_0 = 13.5
         self.assertEqual(expected_energy_consumption_0, energy_consumption[0])
         expected_training_accuracy_0 = 0.0
         self.assertEqual(expected_training_accuracy_0, training_accuracy[0])

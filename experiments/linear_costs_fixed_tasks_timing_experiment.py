@@ -25,7 +25,7 @@ from timeit import timeit
 
 from devices.linear_cost_device import create_linear_costs
 from schedulers.ecmtc import ecmtc
-from schedulers.elastic_adapted import elastic_adapted_client_selection_algorithm
+from schedulers.elastic_adapted import elastic_adapted
 from schedulers.fedaecs_adapted import fedaecs_adapted
 from schedulers.mc2mkp_adapted import mc2mkp_adapted
 from schedulers.mec import mec
@@ -96,6 +96,7 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         # α > 0 && α < 1 --> ni = α * (E_comp_i + E_up_i + 1) - 1, ∀i ∈ I.
         # α == 1 ----------> ni = E_comp_i + E_up_i, ∀i ∈ I.
         assignment_capacities_elastic = []
+        assignment_capacities_i = []
         # Divide the tasks as equally possible.
         mean_tasks = num_tasks // num_resources
         # But it still may have some leftovers. If so, they will be added to the first resource.
@@ -105,14 +106,25 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
             assignment_capacities_elastic.append(Ai)
         assignment_capacities_elastic[0] += leftover
         assignment_capacities_elastic = array(assignment_capacities_elastic)
-        (elastic_adapted_assignment, elastic_adapted_tasks_assignment, _, elastic_adapted_makespan,
-         elastic_adapted_energy_consumption) \
-            = elastic_adapted_client_selection_algorithm(num_resources,
-                                                         assignment_capacities_elastic,
-                                                         time_costs,
-                                                         energy_costs,
-                                                         τ,
-                                                         α)
+        for i in range(num_resources):
+            assignment_capacities_i.append(list(range(0, assignment_capacities[i]+1)))
+        (elastic_adapted_assignment, elastic_adapted_tasks_assignment, _) \
+            = elastic_adapted(num_resources,
+                              assignment_capacities_elastic,
+                              time_costs,
+                              energy_costs,
+                              τ,
+                              α)
+        elastic_adapted_makespan = 0
+        elastic_adapted_energy_consumption = 0
+        for sel_index, num_tasks_scheduled in enumerate(list(elastic_adapted_tasks_assignment)):
+            if num_tasks_scheduled > 0:
+                i_index = assignment_capacities_i[sel_index].index(num_tasks_scheduled)
+                time_cost_i = time_costs[sel_index][i_index]
+                if time_cost_i > elastic_adapted_makespan:
+                    elastic_adapted_makespan = time_cost_i
+                energy_cost_i = energy_costs[sel_index][i_index]
+                elastic_adapted_energy_consumption += energy_cost_i
         elastic_adapted_num_selected_resources = get_num_selected_resources(elastic_adapted_assignment)
         elastic_adapted_training_accuracy = get_total_cost(training_accuracies,
                                                            elastic_adapted_tasks_assignment)

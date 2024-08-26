@@ -46,13 +46,13 @@ def generate_experiments_results_figures(execution_parameters: dict) -> None:
             else:
                 y_label = metric_name.replace("_", " ").capitalize()
             figure(figsize=(6, 5))
-            rcParams["axes.titlesize"] = 13
-            rcParams["axes.labelsize"] = 13
-            rcParams["xtick.labelsize"] = 13
-            rcParams["ytick.labelsize"] = 13
-            rcParams["legend.fontsize"] = 12
-            xlabel("Number of resources", fontsize=13)
-            ylabel(y_label, fontsize=13)
+            rcParams["axes.titlesize"] = 18
+            rcParams["axes.labelsize"] = 18
+            rcParams["xtick.labelsize"] = 18
+            rcParams["ytick.labelsize"] = 18
+            rcParams["legend.fontsize"] = 16
+            xlabel("Number of tasks", fontsize=18)
+            ylabel(y_label, fontsize=18)
             xticks(ticks=x_ticks, rotation=15)
             ax = lineplot(data=data,
                           x="Num_Resources",

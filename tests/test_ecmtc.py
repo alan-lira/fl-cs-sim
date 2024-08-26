@@ -10,7 +10,7 @@ class TestECMTC(TestCase):
         num_resources = 3
         num_tasks = 6
         # Task assignment capacities per resource.
-        assignment_capacities = array([[0, 1, 2, 3, 4, 5, 6], [0, 1, 2], [1, 2, 3, 4, 5, 6]], dtype=object)
+        assignment_capacities = array([[0, 1, 2, 3, 4, 5, 6], [0, 1, 2], [0, 1, 2, 3, 4, 5, 6]], dtype=object)
         # Monotonically increasing time costs.
         time_costs = array([[0.5, 2, 4, 7, 9, 11, 14], [0, 1, 3, 5, 7, 9, 11], [1, 6, 10, 15, 22, 23, 27]],
                            dtype=object)
@@ -56,12 +56,12 @@ class TestECMTC(TestCase):
         # Task assignment capacities per resource.
         assignment_capacities = array([[1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]], dtype=object)
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
-        time_costs = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
+        time_costs = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Monotonically increasing energy costs.
-        energy_costs = array([[0, 2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7, 99]],
+        energy_costs = array([[2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7]],
                              dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
-        training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
+        training_accuracies = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to ECMTC algorithm.
         max_makespan = inf
         optimal_schedule, minimal_energy_consumption, minimal_makespan = ecmtc(num_resources,
@@ -100,12 +100,12 @@ class TestECMTC(TestCase):
         # Task assignment capacities per resource.
         assignment_capacities = array([[1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]], dtype=object)
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
-        time_costs = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
+        time_costs = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Monotonically increasing energy costs.
-        energy_costs = array([[0, 2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7, 99]],
+        energy_costs = array([[2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7]],
                              dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
-        training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
+        training_accuracies = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to ECMTC algorithm.
         max_makespan = inf
         optimal_schedule, minimal_energy_consumption, minimal_makespan = ecmtc(num_resources,

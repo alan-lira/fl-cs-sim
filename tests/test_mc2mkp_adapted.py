@@ -10,7 +10,7 @@ class TestMC2MKPAdapted(TestCase):
         num_resources = 3
         num_tasks = 6
         # Task assignment capacities per resource.
-        assignment_capacities = array([[0, 1, 2, 3, 4, 5, 6], [0, 1, 2], [1, 2, 3, 4, 5, 6]], dtype=object)
+        assignment_capacities = array([[0, 1, 2, 3, 4, 5, 6], [0, 1, 2], [0, 1, 2, 3, 4, 5, 6]], dtype=object)
         # Monotonically increasing time costs.
         time_costs = array([[0.5, 2, 4, 7, 9, 11, 14], [0, 1, 3, 5, 7, 9, 11], [1, 6, 10, 15, 22, 23, 27]],
                            dtype=object)
@@ -40,11 +40,11 @@ class TestMC2MKPAdapted(TestCase):
         # print("Minimal energy consumption (ΣE): {0}".format(minimal_energy_consumption))
         # print("Training accuracy (ΣW): {0}".format(training_accuracy))
         # Asserts for the MC²MKP algorithm results.
-        expected_number_selected_clients = 2
+        expected_number_selected_clients = 1
         self.assertEqual(expected_number_selected_clients, len(selected_clients))
-        expected_optimal_schedule = [5, 0, 1]
+        expected_optimal_schedule = [6, 0, 0]
         self.assertSequenceEqual(expected_optimal_schedule, list(assignment))
-        expected_makespan = 11.0
+        expected_makespan = 14.0
         self.assertEqual(expected_makespan, makespan)
         expected_minimal_energy_consumption = 0.0
         self.assertEqual(expected_minimal_energy_consumption, minimal_energy_consumption)
@@ -58,12 +58,12 @@ class TestMC2MKPAdapted(TestCase):
         # Task assignment capacities per resource.
         assignment_capacities = array([[1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]], dtype=object)
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
-        time_costs = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
+        time_costs = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Monotonically increasing energy costs.
-        energy_costs = array([[0, 2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7, 99]],
+        energy_costs = array([[2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7]],
                              dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
-        training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
+        training_accuracies = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to MC²MKP Adapted algorithm.
         assignment = mc2mkp_adapted(num_tasks, num_resources, energy_costs, assignment_capacities)
         # Organize the final solution.
@@ -73,9 +73,10 @@ class TestMC2MKPAdapted(TestCase):
         training_accuracy = 0
         for index, value in enumerate(list(assignment)):
             if value > 0:
-                makespan_i = time_costs[index][value]
-                energy_i = energy_costs[index][value]
-                training_accuracy_i = training_accuracies[index][value]
+                i_index = list(assignment_capacities[index]).index(value)
+                makespan_i = time_costs[index][i_index]
+                energy_i = energy_costs[index][i_index]
+                training_accuracy_i = training_accuracies[index][i_index]
                 if makespan_i > makespan:
                     makespan = makespan_i
                 minimal_energy_consumption += energy_i
@@ -102,14 +103,14 @@ class TestMC2MKPAdapted(TestCase):
         num_resources = 3
         num_tasks = 8
         # Task assignment capacities per resource.
-        assignment_capacities = array([[1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]], dtype=object)
+        assignment_capacities = array([[1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5]], dtype=object)
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
-        time_costs = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
+        time_costs = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Monotonically increasing energy costs.
-        energy_costs = array([[0, 2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7, 99]],
+        energy_costs = array([[2, 3.5, 5.5, 8, 10, 12], [0, 1.5, 2.5, 4, 7, 9, 11], [0, 3, 4, 5, 6, 7]],
                              dtype=object)
         # Training accuracies set to zero (MC²MKP paper's example doesn't consider them).
-        training_accuracies = array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=object)
+        training_accuracies = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Solution to MC²MKP Adapted algorithm.
         assignment = mc2mkp_adapted(num_tasks, num_resources, energy_costs, assignment_capacities)
         # Organize the final solution.
@@ -119,9 +120,10 @@ class TestMC2MKPAdapted(TestCase):
         training_accuracy = 0
         for index, value in enumerate(list(assignment)):
             if value > 0:
-                makespan_i = time_costs[index][value]
-                energy_i = energy_costs[index][value]
-                training_accuracy_i = training_accuracies[index][value]
+                i_index = list(assignment_capacities[index]).index(value)
+                makespan_i = time_costs[index][i_index]
+                energy_i = energy_costs[index][i_index]
+                training_accuracy_i = training_accuracies[index][i_index]
                 if makespan_i > makespan:
                     makespan = makespan_i
                 minimal_energy_consumption += energy_i
