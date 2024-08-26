@@ -164,7 +164,7 @@ cython_debug/
 **/.DS_Store
 # Ignore the 'experiments_results' folder.
 experiments_results/
-# Ignore the 'experiments_results_analyzes' folder.
-experiments_results_analyzes/
+# Ignore the 'experiments_results_analyses' folder.
+experiments_results_analyses/
 # Ignore the 'scripts_outputs' folder.
 scripts_outputs/

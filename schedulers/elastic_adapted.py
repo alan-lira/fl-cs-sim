@@ -7,14 +7,14 @@ def calculate_ni_adapted(α: float,
     return α * (Ei + 1) - 1
 
 
-def elastic_adapted_client_selection_algorithm(I: int,
-                                               A: ndarray,
-                                               t: ndarray,
-                                               E: ndarray,
-                                               τ: float,
-                                               α: float) -> tuple:
+def elastic_adapted(I: int,
+                    A: ndarray,
+                    t: ndarray,
+                    E: ndarray,
+                    τ: float,
+                    α: float) -> tuple:
     # Some remarks about this adapted version of ELASTIC algorithm:
-    # 1. We considered that clients does not share a wireless channel, so they can upload their model
+    # 1. We considered that clients do not share a wireless channel, so they can upload their model
     #    without having to wait for the channel availability. In other words, ∀i ∈ I, t_wait_i = 0.
     # 2. The algorithm receives a previously generated array of task assignment capacities (A),
     #    such that the i-th client can process exactly Ai tasks.
@@ -29,7 +29,8 @@ def elastic_adapted_client_selection_algorithm(I: int,
         if A[i] == 0:
             ni = inf
         else:
-            ni = calculate_ni_adapted(α, float(E[i][A[i]]))
+            Ai_index = list(A).index(A[i])
+            ni = calculate_ni_adapted(α, float(E[i][Ai_index]))
         n.append(ni)
     # Sort all the clients in increasing order based on ηi.
     # Denote I′ as the set of sorted clients.
@@ -48,7 +49,8 @@ def elastic_adapted_client_selection_algorithm(I: int,
             if x[index] == 1:
                 idxj = idx[index]
                 idx_j.append(idxj)
-                tj = t[index][A[index]-1]
+                Ai_index = list(A).index(A[index])
+                tj = t[index][Ai_index]
                 t_j.append(tj)
         sorted_t_j, sorted_J = map(list, zip(*sorted(zip(t_j, idx_j), reverse=False)))
         for index, _ in enumerate(sorted_J):
@@ -59,8 +61,6 @@ def elastic_adapted_client_selection_algorithm(I: int,
     # Organize the solution.
     tasks_assignment = []
     selected_clients = []
-    makespan = 0
-    energy_consumption = 0
     for index, _ in enumerate(x):
         tasks_assignment.append(0)
         if x[index] == 1:
@@ -69,9 +69,4 @@ def elastic_adapted_client_selection_algorithm(I: int,
             j_num_tasks_assigned = A[j]
             tasks_assignment[index] = j_num_tasks_assigned
             selected_clients.append(j)
-            makespan_j = t[j][j_num_tasks_assigned]
-            if makespan_j > makespan:
-                makespan = makespan_j
-            energy_consumption_j = E[j][j_num_tasks_assigned]
-            energy_consumption += energy_consumption_j
-    return x, tasks_assignment, selected_clients, makespan, energy_consumption
+    return x, tasks_assignment, selected_clients
