@@ -4,7 +4,7 @@
 script_file="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 # Script started message.
-echo "The '$script_file' script has started!"
+echo "$(date +%F_%T) $script_file INFO: The '$script_file' script has started!"
 
 # Get the start time.
 start_time=$(date +%s)
@@ -25,8 +25,8 @@ done
 end_time=$(date +%s)
 
 # Script ended message.
-echo "The '$script_file' script has ended successfully!"
-echo "Elapsed time: $((end_time - start_time)) seconds."
+echo "$(date +%F_%T) $script_file INFO: The '$script_file' script has ended successfully!"
+echo "$(date +%F_%T) $script_file INFO: Elapsed time: $((end_time - start_time)) seconds."
 
 # Exit.
 exit 0
