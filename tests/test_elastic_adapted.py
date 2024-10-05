@@ -23,19 +23,20 @@ class TestELASTICAdapted(TestCase):
         # 30 tasks.
         T = 30
         # Task assignment capacities per resource.
+        tasks_scheduled = []
         assignment_capacities = []
-        assignment_capacities_i = []
-        # Divide the tasks as equally as possible.
+        # Divide the tasks equally (as possible).
         mean_tasks = T // I
         # But it still may have some leftovers. If so, they will be added to the first resource.
         leftover = T % I
         for i in range(I):
             Ai = mean_tasks
-            assignment_capacities.append(Ai)
-        assignment_capacities[0] += leftover
-        assignment_capacities = array(assignment_capacities)
+            tasks_scheduled.append(Ai)
+        tasks_scheduled[0] += leftover
+        tasks_scheduled = array(tasks_scheduled)
         for i in range(I):
-            assignment_capacities_i.append(list(range(0, assignment_capacities[i]+1)))
+            assignment_capacities.append(list(range(0, T+1)))
+        assignment_capacities = array(assignment_capacities)
         # Time costs to process tasks per resource.
         time_costs = []
         for i in range(I):
@@ -73,13 +74,13 @@ class TestELASTICAdapted(TestCase):
 
         # Solution to ELASTIC's Adapted Algorithm 1: Client Selection.
         x, tasks_assignment, selected_clients \
-            = elastic_adapted(I, assignment_capacities, time_costs, energy_costs, τ, α)
+            = elastic_adapted(I, assignment_capacities, tasks_scheduled, time_costs, energy_costs, τ, α)
         makespan = 0
         energy_consumption = 0
         training_accuracy = 0
         for sel_index, num_tasks_scheduled in enumerate(list(tasks_assignment)):
             if num_tasks_scheduled > 0:
-                i_index = assignment_capacities_i[sel_index].index(num_tasks_scheduled)
+                i_index = list(assignment_capacities[sel_index]).index(num_tasks_scheduled)
                 time_cost_i = time_costs[sel_index][i_index]
                 if time_cost_i > makespan:
                     makespan = time_cost_i
@@ -120,19 +121,20 @@ class TestELASTICAdapted(TestCase):
         I = 3  # num_resources
         T = 6  # num_tasks
         # Task assignment capacities per resource.
+        tasks_scheduled = []
         assignment_capacities = []
-        assignment_capacities_i = []
-        # Divide the tasks as equally as possible.
+        # Divide the tasks equally (as possible).
         mean_tasks = T // I
         # But it still may have some leftovers. If so, they will be added to the first resource.
         leftover = T % I
         for i in range(I):
             Ai = mean_tasks
-            assignment_capacities.append(Ai)
-        assignment_capacities[0] += leftover
-        assignment_capacities = array(assignment_capacities)
+            tasks_scheduled.append(Ai)
+        tasks_scheduled[0] += leftover
+        tasks_scheduled = array(tasks_scheduled)
         for i in range(I):
-            assignment_capacities_i.append(list(range(0, assignment_capacities[i]+1)))
+            assignment_capacities.append(list(range(0, T+1)))
+        assignment_capacities = array(assignment_capacities)
         # Monotonically increasing time costs.
         time_costs = array([[0.5, 2, 4, 7, 9, 11, 14], [0, 1, 3, 5, 7, 9, 11], [1, 6, 10, 15, 22, 23, 27]],
                            dtype=object)
@@ -152,13 +154,13 @@ class TestELASTICAdapted(TestCase):
 
         # Solution to ELASTIC's Adapted Algorithm 1: Client Selection.
         x, tasks_assignment, selected_clients \
-            = elastic_adapted(I, assignment_capacities, time_costs, energy_costs, τ, α)
+            = elastic_adapted(I, assignment_capacities, tasks_scheduled, time_costs, energy_costs, τ, α)
         makespan = 0
         energy_consumption = 0
         training_accuracy = 0
         for sel_index, num_tasks_scheduled in enumerate(list(tasks_assignment)):
             if num_tasks_scheduled > 0:
-                i_index = assignment_capacities_i[sel_index].index(num_tasks_scheduled)
+                i_index = list(assignment_capacities[sel_index]).index(num_tasks_scheduled)
                 time_cost_i = time_costs[sel_index][i_index]
                 if time_cost_i > makespan:
                     makespan = time_cost_i
@@ -193,19 +195,20 @@ class TestELASTICAdapted(TestCase):
         I = 3  # num_resources
         T = 5  # num_tasks
         # Task assignment capacities per resource.
+        tasks_scheduled = []
         assignment_capacities = []
-        assignment_capacities_i = []
-        # Divide the tasks as equally as possible.
+        # Divide the tasks equally (as possible).
         mean_tasks = T // I
         # But it still may have some leftovers. If so, they will be added to the first resource.
         leftover = T % I
         for i in range(I):
             Ai = mean_tasks
-            assignment_capacities.append(Ai)
-        assignment_capacities[0] += leftover
-        assignment_capacities = array(assignment_capacities)
+            tasks_scheduled.append(Ai)
+        tasks_scheduled[0] += leftover
+        tasks_scheduled = array(tasks_scheduled)
         for i in range(I):
-            assignment_capacities_i.append(list(range(0, assignment_capacities[i]+1)))
+            assignment_capacities.append(list(range(0, T+1)))
+        assignment_capacities = array(assignment_capacities)
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
         time_costs = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Monotonically increasing energy costs.
@@ -225,13 +228,13 @@ class TestELASTICAdapted(TestCase):
 
         # Solution to ELASTIC's Adapted Algorithm 1: Client Selection.
         x, tasks_assignment, selected_clients \
-            = elastic_adapted(I, assignment_capacities, time_costs, energy_costs, τ, α)
+            = elastic_adapted(I, assignment_capacities, tasks_scheduled, time_costs, energy_costs, τ, α)
         makespan = 0
         energy_consumption = 0
         training_accuracy = 0
         for sel_index, num_tasks_scheduled in enumerate(list(tasks_assignment)):
             if num_tasks_scheduled > 0:
-                i_index = assignment_capacities_i[sel_index].index(num_tasks_scheduled)
+                i_index = list(assignment_capacities[sel_index]).index(num_tasks_scheduled)
                 time_cost_i = time_costs[sel_index][i_index]
                 if time_cost_i > makespan:
                     makespan = time_cost_i
@@ -266,19 +269,20 @@ class TestELASTICAdapted(TestCase):
         I = 3  # num_resources
         T = 8  # num_tasks
         # Task assignment capacities per resource.
+        tasks_scheduled = []
         assignment_capacities = []
-        assignment_capacities_i = []
-        # Divide the tasks as equally as possible.
+        # Divide the tasks equally (as possible).
         mean_tasks = T // I
         # But it still may have some leftovers. If so, they will be added to the first resource.
         leftover = T % I
         for i in range(I):
             Ai = mean_tasks
-            assignment_capacities.append(Ai)
-        assignment_capacities[0] += leftover
-        assignment_capacities = array(assignment_capacities)
+            tasks_scheduled.append(Ai)
+        tasks_scheduled[0] += leftover
+        tasks_scheduled = array(tasks_scheduled)
         for i in range(I):
-            assignment_capacities_i.append(list(range(0, assignment_capacities[i]+1)))
+            assignment_capacities.append(list(range(0, T+1)))
+        assignment_capacities = array(assignment_capacities)
         # Time costs set to zero (MC²MKP paper's example doesn't consider them).
         time_costs = array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype=object)
         # Monotonically increasing energy costs.
@@ -298,13 +302,13 @@ class TestELASTICAdapted(TestCase):
 
         # Solution to ELASTIC's Adapted Algorithm 1: Client Selection.
         x, tasks_assignment, selected_clients \
-            = elastic_adapted(I, assignment_capacities, time_costs, energy_costs, τ, α)
+            = elastic_adapted(I, assignment_capacities, tasks_scheduled, time_costs, energy_costs, τ, α)
         makespan = 0
         energy_consumption = 0
         training_accuracy = 0
         for sel_index, num_tasks_scheduled in enumerate(list(tasks_assignment)):
             if num_tasks_scheduled > 0:
-                i_index = assignment_capacities_i[sel_index].index(num_tasks_scheduled)
+                i_index = list(assignment_capacities[sel_index]).index(num_tasks_scheduled)
                 time_cost_i = time_costs[sel_index][i_index]
                 if time_cost_i > makespan:
                     makespan = time_cost_i
