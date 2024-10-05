@@ -95,22 +95,24 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         # α == 0 ----------> ni = -1, ∀i ∈ I.
         # α > 0 && α < 1 --> ni = α * (E_comp_i + E_up_i + 1) - 1, ∀i ∈ I.
         # α == 1 ----------> ni = E_comp_i + E_up_i, ∀i ∈ I.
+        tasks_scheduled_elastic = []
         assignment_capacities_elastic = []
-        assignment_capacities_i = []
-        # Divide the tasks as equally possible.
+        # Divide the tasks equally (as possible).
         mean_tasks = num_tasks // num_resources
         # But it still may have some leftovers. If so, they will be added to the first resource.
         leftover = num_tasks % num_resources
         for _ in range(num_resources):
             Ai = mean_tasks
-            assignment_capacities_elastic.append(Ai)
-        assignment_capacities_elastic[0] += leftover
+            tasks_scheduled_elastic.append(Ai)
+        tasks_scheduled_elastic[0] += leftover
+        tasks_scheduled_elastic = array(tasks_scheduled_elastic)
+        for _ in range(num_resources):
+            assignment_capacities_elastic.append(list(range(0, num_tasks+1)))
         assignment_capacities_elastic = array(assignment_capacities_elastic)
-        for i in range(num_resources):
-            assignment_capacities_i.append(list(range(0, assignment_capacities[i]+1)))
         (elastic_adapted_assignment, elastic_adapted_tasks_assignment, _) \
             = elastic_adapted(num_resources,
                               assignment_capacities_elastic,
+                              tasks_scheduled_elastic,
                               time_costs,
                               energy_costs,
                               τ,
@@ -119,7 +121,7 @@ def execute_scheduler(scheduler_execution_parameters: dict) -> dict:
         elastic_adapted_energy_consumption = 0
         for sel_index, num_tasks_scheduled in enumerate(list(elastic_adapted_tasks_assignment)):
             if num_tasks_scheduled > 0:
-                i_index = assignment_capacities_i[sel_index].index(num_tasks_scheduled)
+                i_index = list(assignment_capacities_elastic[sel_index]).index(num_tasks_scheduled)
                 time_cost_i = time_costs[sel_index][i_index]
                 if time_cost_i > elastic_adapted_makespan:
                     elastic_adapted_makespan = time_cost_i
