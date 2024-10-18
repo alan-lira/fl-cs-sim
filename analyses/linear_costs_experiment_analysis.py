@@ -105,12 +105,12 @@ def run_experiment_analysis() -> None:
     # Start message.
     print("{0}: Starting the '{1}' experiment's analysis...".format(datetime.now(), experiment_name))
     # Get the experiments results folder.
-    experiments_results_folder = Path("experiments_results")
+    experiments_results_folder = Path(__file__).resolve().parents[1].joinpath("experiments_results")
     # Get the experiment results CSV file.
-    experiment_results_csv_file \
-        = experiments_results_folder.joinpath("{0}_experiment_results.csv".format(experiment_name))
+    experiment_results_csv_file_name = "{0}_experiment_results.csv".format(experiment_name)
+    experiment_results_csv_file = experiments_results_folder.joinpath(experiment_results_csv_file_name)
     # Set the experiments results analyses folder.
-    experiments_results_analyses_folder = Path("experiments_results_analyses")
+    experiments_results_analyses_folder = Path(__file__).resolve().parents[1].joinpath("experiments_results_analyses")
     # Set the experiment results analysis folder.
     experiment_results_analysis_folder = experiments_results_analyses_folder.joinpath(experiment_name)
     # Remove the output folder and its contents (if exists).
