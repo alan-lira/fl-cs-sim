@@ -352,7 +352,7 @@ def run_experiment() -> None:
     # Start message.
     print("{0}: Starting the '{1}' experiment...".format(datetime.now(), experiment_name))
     # Set the experiments results folder.
-    experiments_results_folder = Path("experiments_results")
+    experiments_results_folder = Path(__file__).resolve().parents[1].joinpath("experiments_results")
     # Set the experiment results file.
     experiment_results_file = Path("{0}_experiment_results.csv".format(experiment_name))
     # Set the output CSV file to store the results.

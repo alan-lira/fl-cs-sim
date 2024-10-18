@@ -3,6 +3,12 @@
 # Get the script file.
 script_file="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
+# Get the script working directory.
+script_work_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Get the script parent directory.
+script_parent_dir="$(dirname "$script_work_dir")"
+
 # Script started message.
 echo "$(date +%F_%T) $script_file INFO: The '$script_file' script has started!"
 
@@ -12,23 +18,39 @@ start_time=$(date +%s)
 # Enable debugging for the current shell session.
 set -x
 
+# Set the virtual environment path.
+venv_path="$script_parent_dir/.venv_fl_cs_sim"
+
+# Create the virtual environment.
+python3 -m venv "$venv_path"
+
+# Activate the virtual environment.
+source "$venv_path"/bin/activate
+
 # Create the 'scripts_output' folder (if needed).
-mkdir scripts_outputs
+scripts_output_folder="$script_parent_dir"/scripts_outputs
+mkdir "$scripts_output_folder"
 
 # Run the setup to install Python3 modules dependencies.
-bash ./scripts/run_setup.sh 2>&1 | tee scripts_outputs/run_setup.out
+bash "$script_work_dir"/run_setup.sh 2>&1 | tee "$scripts_output_folder"/run_setup.out
 
 # Run all schedulers' unit tests to verify their implementations are working correctly.
-bash ./scripts/run_all_schedulers_tests.sh 2>&1 | tee scripts_outputs/run_all_schedulers_tests.out
+bash "$script_work_dir"/run_all_schedulers_tests.sh 2>&1 | tee "$scripts_output_folder"/run_all_schedulers_tests.out
 
 # Run all costs experiments.
-bash ./scripts/run_all_costs_experiments.sh 2>&1 | tee scripts_outputs/run_all_costs_experiments.out
+bash "$script_work_dir"/run_all_costs_experiments.sh 2>&1 | tee "$scripts_output_folder"/run_all_costs_experiments.out
 
 # Run all timing experiments.
-bash ./scripts/run_all_timing_experiments.sh 2>&1 | tee scripts_outputs/run_all_timing_experiments.out
+bash "$script_work_dir"/run_all_timing_experiments.sh 2>&1 | tee "$scripts_output_folder"/run_all_timing_experiments.out
 
 # Run all experiments results analyses.
-bash ./scripts/run_all_experiments_results_analyses.sh 2>&1 | tee scripts_outputs/run_all_experiments_results_analyses.out
+bash "$script_work_dir"/run_all_experiments_results_analyses.sh 2>&1 | tee "$scripts_output_folder"/run_all_experiments_results_analyses.out
+
+# Deactivate the virtual environment.
+deactivate
+
+# Remove the virtual environment.
+rm -rf "$venv_path"
 
 # Get the end time.
 end_time=$(date +%s)

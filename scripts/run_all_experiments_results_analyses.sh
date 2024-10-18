@@ -3,6 +3,12 @@
 # Get the script file.
 script_file="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
+# Get the script working directory.
+script_work_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Get the script parent directory.
+script_parent_dir="$(dirname "$script_work_dir")"
+
 # Script started message.
 echo "$(date +%F_%T) $script_file INFO: The '$script_file' script has started!"
 
@@ -10,14 +16,13 @@ echo "$(date +%F_%T) $script_file INFO: The '$script_file' script has started!"
 start_time=$(date +%s)
 
 # Append the project's root directory to the 'PYTHONPATH' environment variable.
-cwd=$(pwd)
-export PYTHONPATH="${PYTHONPATH}:$cwd"
+export PYTHONPATH="${PYTHONPATH}:$script_parent_dir"
 
 # Enable debugging for the current shell session.
 set -x
 
 # Find and execute all experiment analysis files that end with '_experiment_analysis.py'.
-find ./analyses/ -name "*_experiment_analysis.py" | while read -r line; do
+find "$script_parent_dir"/analyses -name "*_experiment_analysis.py" | while read -r line; do
     python3 "$line"
 done
 
